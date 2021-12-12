@@ -1,6 +1,12 @@
 #include <mpi.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
+#include <string.h>
+#include <sys/time.h>
+
+static char* regionName = "Lombardy";
+static char* countryName = "Italy";
 
 void sleep_ms(double ms){
     int t = ms*1000;
@@ -8,33 +14,112 @@ void sleep_ms(double ms){
 }
 
 // THIS FUNCTION WILL READ FROM A FILE
-double get_new_avg(double* sw, int* count){
-    double avg;
-    int r = rand() % 20;
-    if(*count < 6){
-        sw[*count] = (double)r;
-        *count += 1;
+double get_new_avg(double sws[][6], int counts[], int rank, double data){
+    double avg; 
+    if(counts[rank] < 6){
+        sws[rank][counts[rank]] = data;      
+        counts[rank] += 1;
         double rs = 0;
-        for(int i = 0; i < *count; i++){
-            rs += sw[i];
+        for(int i = 0; i < counts[rank]; i++){
+            rs += sws[rank][i];
         }
-        
-        avg = rs / *count;
+        avg = rs / counts[rank];
     } else{
         for(int i = 0; i < 6-1; i++){
-            sw[i] = sw[i+1];
+            sws[rank][i] = sws[rank][i+1];
         }
-        sw[5] = (double)r;
+        sws[rank][5] = data;
         double rs = 0;
-        for(int i = 0; i < *count; i++){
-            rs += sw[i];
+        for(int i = 0; i < counts[rank]; i++){
+            rs += sws[rank][i];
         }
-        
         avg = rs / 6.0;
     }
-
     return avg;
 }
+
+double generate_data(double min, double max){
+    double range = max - min;
+    double div = RAND_MAX / range;
+    return min + rand()/div;
+}
+
+void init_arrays(double sws[][6], int counts[], int rank){
+    for(int i = 0; i < rank; i++){
+        counts[i] = 0;
+        for(int j = 0; j < 6; j++){
+            sws[i][j] = 0;
+        }
+    }
+}
+
+void sendSensorData(int rank, double avg, double sws[][6], int count, double threshold){
+    
+    char jstring[500];
+    char str[160];
+    
+    strcpy(jstring, "{\n\"sensor\": ");
+    
+    sprintf(str, "S%d,\n", rank);
+    strcat(jstring, str);
+
+    //strcpy(str, "";)
+    
+    if(avg < threshold){
+        strcat(jstring, "\"type\": 0,\n");
+
+        sprintf(str, "\"value\": %.4f,\n", avg);
+        strcat(jstring, str);
+    } else{
+        strcat(jstring, "\"type\": 1,\n");
+
+        sprintf(str, "\"value\": [");
+        strcat(jstring, str);
+
+        for(int i = 0; i < count-1; i++){
+            sprintf(str, "%.4f, ", sws[rank][i]);
+            strcat(jstring, str);
+        }
+        sprintf(str, "%.4f],\n", sws[rank][count-1]);
+        strcat(jstring, str);
+    }
+    /*
+    time_t curtime;
+    time(&curtime);
+    char* timeStr = ctime(&curtime);
+    timeStr[strlen(timeStr)-1] = '\0';
+    */
+
+    struct timespec curtime;
+    clock_gettime(CLOCK_REALTIME, &curtime);
+
+    long totalTime = curtime.tv_sec*1000 + curtime.tv_nsec/1000000;
+
+    sprintf(str, "\"timestamp\": %ld,\n", totalTime);
+    strcat(jstring, str);
+
+    sprintf(str, "\"region\": %s,\n", regionName);
+    strcat(jstring, str);
+
+    sprintf(str, "\"country\": %s\n}", countryName);
+    strcat(jstring, str);
+    
+    printf("%s\n", jstring);
+
+}
+
+/*
+struct SensorData
+{
+    char[6] sensorName;
+    int type;
+    double avg;
+    double[6] values;
+    int timestamp;
+    char[10] region;
+    char[10] country;
+};
+*/
 
 int main(int argc, char *argv[]) {
     int rank, size;
@@ -49,51 +134,57 @@ int main(int argc, char *argv[]) {
 
     if(rank == 0){
         //printf("Hello, this is microcontroller!\n");
-        double b;
-        double sw[6];
+        double val;
+        double sws[size][6];
+        int counts[size];
+        int threshold = 15;
+        init_arrays(sws, counts, size);
+
+        double avg;
         MPI_Status status;
         while (1)
         {
             
+
+            
             MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
         
             int src = status.MPI_SOURCE;
-            int tag = status.MPI_TAG;
-            if(tag){
-                
-                int size;
-                MPI_Get_count(&status, MPI_DOUBLE, &size);
-                MPI_Recv(sw, size, MPI_DOUBLE, src, tag, MPI_COMM_WORLD, &status);
-                printf("The threshold exceeded by slave %d. Values: ", src);
-                for(int i = 0; i < size; i++){
-                    printf("%.2f, ", sw[i]);
-                }
-                printf("\n");
-            } else{
-                MPI_Recv(&b, 1, MPI_DOUBLE, src, tag, MPI_COMM_WORLD, &status);
-                printf("Average of slave %d: %.2f\n", src, b);
-            }
+
+           
+
+            MPI_Recv(&val, 1, MPI_DOUBLE, src, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+
+            //printf("Value of slave %d: %.2f\n\n", src, data);
+
             
+
+            avg = get_new_avg(sws, counts, rank, val);
+
+            sendSensorData(rank, avg, sws, counts[rank], threshold);
             
+            /*
+            printf("Sliding window of slave %d: ", rank);
+            for(int i = 0; i < counts[rank]; i++){
+                printf("%.2f, ", sws[rank][i]);
+            }            
+            printf("\n");
+            */
+
         } 
         
     } else{
-        
-        double sw[6];
-        double avg = 0;
-        
-        int count = 0;
-
-        
-
-        //printf("%d", count);
+        double lastVal;
+        double minVal = 5;
+        double maxVal = 25;    
         double afterSend = 0.0;
-        double beforeSend = 0.0; 
+        double beforeSend = 0.0;
+        int first = 1; 
         
         while (1)
         {   
             
-            avg = get_new_avg(sw, &count);
+            lastVal = generate_data(minVal, maxVal);
             
             /*
             printf("Sliding window: ");
@@ -103,21 +194,21 @@ int main(int argc, char *argv[]) {
             printf("\n");
             */
             //printf("Average of slave %d: %.2f\n", rank, avg);
-            if(count > 1){
+            if(first){
                 beforeSend = MPI_Wtime();
                 int timePassed_ms = (beforeSend - afterSend)*1000;
                 int waitDuration_ms = 2000 - timePassed_ms;
                 if(waitDuration_ms > 0){
                     sleep_ms(waitDuration_ms);
                 }
+                
+            } else{
+                first = 0;
             }
 
-            
-            if(avg < 11.0){
-                MPI_Send(&avg, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
-            } else{
-                MPI_Send(sw, count, MPI_DOUBLE, 0, 1, MPI_COMM_WORLD);
-            }
+            //printf("New generated data by slave %d: %.2f\n", rank, lastVal);
+            MPI_Send(&lastVal, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
+        
             afterSend = MPI_Wtime();           
         }        
         

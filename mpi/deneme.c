@@ -4,6 +4,9 @@
 #include <time.h>
 #include <string.h>
 #include <sys/time.h>
+#include <sys/socket.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
 
 static char* regionName = "Lombardy";
 static char* countryName = "Italy";
@@ -53,9 +56,9 @@ void init_arrays(double sws[][6], int counts[], int rank){
     }
 }
 
-void sendSensorData(int rank, double avg, double sws[][6], int count, double threshold){
+void prepareJSon(int rank, double avg, double sws[][6], int count, double threshold, char* jstring){
     
-    char jstring[500];
+    
     char str[160];
     
     strcpy(jstring, "{\n\"sensor\": ");
@@ -104,7 +107,22 @@ void sendSensorData(int rank, double avg, double sws[][6], int count, double thr
     sprintf(str, "\"country\": %s\n}", countryName);
     strcat(jstring, str);
     
-    printf("%s\n", jstring);
+    //printf("%s\n", jstring);
+    
+    //return jstring;
+}
+
+void preparePostRequest(char* message, char* jstring, char* targetIP){
+    char str[160];
+
+    sprintf(message, "POST / HTTP/1.1\n");
+    strcat(message, "From: MC1\n");
+    strcat(message, "Content-Type: application/json\n");
+    sprintf(str, "Content-Length: %ld\n\n", strlen(jstring));
+    strcat(message, str);
+    strcat(message, jstring);
+
+    printf("%s\n", message);
 
 }
 
@@ -133,36 +151,81 @@ int main(int argc, char *argv[]) {
     
 
     if(rank == 0){
-        //printf("Hello, this is microcontroller!\n");
+        
+        int socket_desc;
+        struct sockaddr_in server;
+        char* targetIP = "0.0.0.0";
+        int port = 8080;
+
+        socket_desc = socket(AF_INET , SOCK_STREAM , 0);
+	    if (socket_desc == -1){
+		    printf("Could not create socket");
+	    }
+        
+        server.sin_addr.s_addr = inet_addr(targetIP);
+        server.sin_family = AF_INET;
+        server.sin_port = htons(port);
+       
+        if(connect(socket_desc, (struct sockaddr *)&server ,sizeof(server)) < 0){
+            printf("connect error\n");
+		    return 1;
+        }
+        //printf("Made the connection\n");
+    
+
+        //printf("\nHello, this is microcontroller!\n");
         double val;
         double sws[size][6];
         int counts[size];
         int threshold = 15;
+
+        //printf("HERE5\n");        
         init_arrays(sws, counts, size);
 
         double avg;
         MPI_Status status;
+        //printf("HERE4\n");
+
+        char message[2000];
+        char server_reply[2000];
+        char jstring[500];
         while (1)
         {
             
-
+            //printf("HERE3\n");
             
             MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
         
             int src = status.MPI_SOURCE;
 
-           
+           //printf("HERE2\n");
 
             MPI_Recv(&val, 1, MPI_DOUBLE, src, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
             //printf("Value of slave %d: %.2f\n\n", src, data);
 
-            
+            //printf("HERE1\n");
 
             avg = get_new_avg(sws, counts, rank, val);
 
-            sendSensorData(rank, avg, sws, counts[rank], threshold);
+            prepareJSon(rank, avg, sws, counts[rank], threshold, jstring);
+            //strcpy(message, "LOL");
+
+            preparePostRequest(message, jstring, targetIP);
             
+            if(send(socket_desc, message, strlen(message), 0) < 0){
+                printf("Send failed\n");
+                return 2;
+            }
+            printf("Data sent\n");
+
+            /*
+            if(recv(socket_desc, server_reply, 2000, 0) < 0){
+                printf("Receive failed\n");
+                return 3;
+            }
+            printf("Reply received: %s", server_reply);
+            */
             /*
             printf("Sliding window of slave %d: ", rank);
             for(int i = 0; i < counts[rank]; i++){

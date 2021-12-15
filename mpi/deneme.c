@@ -208,7 +208,7 @@ int main(int argc, char *argv[]) {
 
             avg = get_new_avg(sws, counts, rank, val);
 	    
-		```
+		
 
             prepareJSon(rank, avg, sws, counts[rank], threshold, jstring);
             //strcpy(message, "LOL");
@@ -220,7 +220,7 @@ int main(int argc, char *argv[]) {
                 return 2;
             }
             printf("Data sent\n");
-		```
+		
 
             /*
             if(recv(socket_desc, server_reply, 2000, 0) < 0){

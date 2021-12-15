@@ -173,18 +173,18 @@ int main(int argc, char *argv[]) {
         //printf("Made the connection\n");
     
 
-        //printf("\nHello, this is microcontroller!\n");
+        
         double val;
         double sws[size][6];
         int counts[size];
         int threshold = 15;
 
-        //printf("HERE5\n");        
+          
         init_arrays(sws, counts, size);
 
         double avg;
         MPI_Status status;
-        //printf("HERE4\n");
+       
 
         char message[2000];
         char server_reply[2000];
@@ -192,21 +192,23 @@ int main(int argc, char *argv[]) {
         while (1)
         {
             
-            //printf("HERE3\n");
+          
             
             MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
         
             int src = status.MPI_SOURCE;
 
-           //printf("HERE2\n");
+         
 
             MPI_Recv(&val, 1, MPI_DOUBLE, src, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
             //printf("Value of slave %d: %.2f\n\n", src, data);
 
-            //printf("HERE1\n");
+         
 
             avg = get_new_avg(sws, counts, rank, val);
+	    
+		```
 
             prepareJSon(rank, avg, sws, counts[rank], threshold, jstring);
             //strcpy(message, "LOL");
@@ -218,6 +220,7 @@ int main(int argc, char *argv[]) {
                 return 2;
             }
             printf("Data sent\n");
+		```
 
             /*
             if(recv(socket_desc, server_reply, 2000, 0) < 0){

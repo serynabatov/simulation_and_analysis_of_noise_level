@@ -61,20 +61,20 @@ void prepareJSon(int rank, double avg, double sws[][6], int count, double thresh
     
     char str[160];
     
-    strcpy(jstring, "{\n\"sensor\": ");
+    strcpy(jstring, "{\"sensor\": ");
     
-    sprintf(str, "S%d,\n", rank);
+    sprintf(str, "S%d,", rank);
     strcat(jstring, str);
 
     //strcpy(str, "";)
     
     if(avg < threshold){
-        strcat(jstring, "\"type\": 0,\n");
+        strcat(jstring, "\"type\": 0,");
 
-        sprintf(str, "\"value\": %.4f,\n", avg);
+        sprintf(str, "\"value\": %.4f,", avg);
         strcat(jstring, str);
     } else{
-        strcat(jstring, "\"type\": 1,\n");
+        strcat(jstring, "\"type\": 1,");
 
         sprintf(str, "\"value\": [");
         strcat(jstring, str);
@@ -83,7 +83,7 @@ void prepareJSon(int rank, double avg, double sws[][6], int count, double thresh
             sprintf(str, "%.4f, ", sws[rank][i]);
             strcat(jstring, str);
         }
-        sprintf(str, "%.4f],\n", sws[rank][count-1]);
+        sprintf(str, "%.4f],", sws[rank][count-1]);
         strcat(jstring, str);
     }
     /*
@@ -98,13 +98,13 @@ void prepareJSon(int rank, double avg, double sws[][6], int count, double thresh
 
     long totalTime = curtime.tv_sec*1000 + curtime.tv_nsec/1000000;
 
-    sprintf(str, "\"timestamp\": %ld,\n", totalTime);
+    sprintf(str, "\"timestamp\": %ld,", totalTime);
     strcat(jstring, str);
 
-    sprintf(str, "\"region\": %s,\n", regionName);
+    sprintf(str, "\"region\": %s,", regionName);
     strcat(jstring, str);
 
-    sprintf(str, "\"country\": %s\n}", countryName);
+    sprintf(str, "\"country\": %s}", countryName);
     strcat(jstring, str);
     
     //printf("%s\n", jstring);
@@ -154,8 +154,8 @@ int main(int argc, char *argv[]) {
         
         int socket_desc;
         struct sockaddr_in server;
-        char* targetIP = "0.0.0.0";
-        int port = 8080;
+        char* targetIP = "127.0.0.1";
+        int port = 5000;
 
         socket_desc = socket(AF_INET , SOCK_STREAM , 0);
 	    if (socket_desc == -1){

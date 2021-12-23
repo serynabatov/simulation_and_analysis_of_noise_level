@@ -193,7 +193,7 @@ int main(int argc, char *argv[]) {
         {
             
           
-            
+            printf("Getting values\n");
             MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
         
             int src = status.MPI_SOURCE;
@@ -202,9 +202,9 @@ int main(int argc, char *argv[]) {
 
             MPI_Recv(&val, 1, MPI_DOUBLE, src, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
-            //printf("Value of slave %d: %.2f\n\n", src, data);
+            printf("Value of slave %d: %.2f\n\n", src, val);
 
-         
+
 
             avg = get_new_avg(sws, counts, rank, val);
 	    
@@ -214,12 +214,14 @@ int main(int argc, char *argv[]) {
             //strcpy(message, "LOL");
 
             preparePostRequest(message, jstring, targetIP);
+
+            printf("Will send to server\n");
             
             if(send(socket_desc, message, strlen(message), 0) < 0){
                 printf("Send failed\n");
                 return 2;
             }
-            printf("Data sent\n");
+            printf("Data sent\n\n");
 		
 
             /*

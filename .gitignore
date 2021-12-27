@@ -1,0 +1,7 @@
+*.a
+*.cooja
+*.native
+*.map
+
+obj_cooja/
+obj_native/

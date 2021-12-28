@@ -17,8 +17,8 @@ PROCESS_THREAD(sensor_simulator_process, ev, data) {
 
   PROCESS_BEGIN();
 
-  /* Setup a periodic timer that expires after 2 seconds. */
-  etimer_set(&timer, CLOCK_SECOND * 2);
+  /* Setup a periodic timer that expires after 3 seconds. */
+  etimer_set(&timer, CLOCK_SECOND * 3);
 
   while(1) {
     double d = randfrom(20,60);

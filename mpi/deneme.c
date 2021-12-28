@@ -4,9 +4,8 @@
 #include <time.h>
 #include <string.h>
 #include <sys/time.h>
-#include <sys/socket.h>
-#include <sys/socket.h>
 #include <arpa/inet.h>
+#include "mqtt-client.h"
 
 static char* regionName = "Lombardy";
 static char* countryName = "Italy";
@@ -66,7 +65,6 @@ void prepareJSon(int rank, double avg, double sws[][6], int count, double thresh
     sprintf(str, "S%d,", rank);
     strcat(jstring, str);
 
-    //strcpy(str, "";)
     
     if(avg < threshold){
         strcat(jstring, "\"type\": 0,");
@@ -86,12 +84,6 @@ void prepareJSon(int rank, double avg, double sws[][6], int count, double thresh
         sprintf(str, "%.4f],", sws[rank][count-1]);
         strcat(jstring, str);
     }
-    /*
-    time_t curtime;
-    time(&curtime);
-    char* timeStr = ctime(&curtime);
-    timeStr[strlen(timeStr)-1] = '\0';
-    */
 
     struct timespec curtime;
     clock_gettime(CLOCK_REALTIME, &curtime);
@@ -106,38 +98,7 @@ void prepareJSon(int rank, double avg, double sws[][6], int count, double thresh
 
     sprintf(str, "\"country\": %s}", countryName);
     strcat(jstring, str);
-    
-    //printf("%s\n", jstring);
-    
-    //return jstring;
 }
-
-void preparePostRequest(char* message, char* jstring, char* targetIP){
-    char str[160];
-
-    sprintf(message, "POST / HTTP/1.1\n");
-    strcat(message, "From: MC1\n");
-    strcat(message, "Content-Type: application/json\n");
-    sprintf(str, "Content-Length: %ld\n\n", strlen(jstring));
-    strcat(message, str);
-    strcat(message, jstring);
-
-    printf("%s\n", message);
-
-}
-
-/*
-struct SensorData
-{
-    char[6] sensorName;
-    int type;
-    double avg;
-    double[6] values;
-    int timestamp;
-    char[10] region;
-    char[10] country;
-};
-*/
 
 int main(int argc, char *argv[]) {
     int rank, size;
@@ -150,30 +111,8 @@ int main(int argc, char *argv[]) {
 
     
 
-    if(rank == 0){
-        
-        int socket_desc;
-        struct sockaddr_in server;
-        char* targetIP = "127.0.0.1";
-        int port = 5000;
-
-        socket_desc = socket(AF_INET , SOCK_STREAM , 0);
-	    if (socket_desc == -1){
-		    printf("Could not create socket");
-	    }
-        
-        server.sin_addr.s_addr = inet_addr(targetIP);
-        server.sin_family = AF_INET;
-        server.sin_port = htons(port);
+    if(rank == 0) {
        
-        if(connect(socket_desc, (struct sockaddr *)&server ,sizeof(server)) < 0){
-            printf("connect error\n");
-		    return 1;
-        }
-        //printf("Made the connection\n");
-    
-
-        
         double val;
         double sws[size][6];
         int counts[size];
@@ -188,7 +127,7 @@ int main(int argc, char *argv[]) {
 
         char message[2000];
         char server_reply[2000];
-        char jstring[500];
+        
         while (1)
         {
             
@@ -210,35 +149,18 @@ int main(int argc, char *argv[]) {
 	    
 		
 
-            prepareJSon(rank, avg, sws, counts[rank], threshold, jstring);
-            //strcpy(message, "LOL");
+            prepareJSon(rank, avg, sws, counts[rank], threshold, message);
 
-            preparePostRequest(message, jstring, targetIP);
 
             printf("Will send to server\n");
             
-            if(send(socket_desc, message, strlen(message), 0) < 0){
-                printf("Send failed\n");
+            if (sending_mqtt(message) != 0) {
+                printf("Send failed!\n");
                 return 2;
             }
+
             printf("Data sent\n\n");
 		
-
-            /*
-            if(recv(socket_desc, server_reply, 2000, 0) < 0){
-                printf("Receive failed\n");
-                return 3;
-            }
-            printf("Reply received: %s", server_reply);
-            */
-            /*
-            printf("Sliding window of slave %d: ", rank);
-            for(int i = 0; i < counts[rank]; i++){
-                printf("%.2f, ", sws[rank][i]);
-            }            
-            printf("\n");
-            */
-
         } 
         
     } else{
@@ -254,14 +176,6 @@ int main(int argc, char *argv[]) {
             
             lastVal = generate_data(minVal, maxVal);
             
-            /*
-            printf("Sliding window: ");
-            for(int i = 0; i < count; i++){
-                printf("%.2f, ", sw[i]);
-            }
-            printf("\n");
-            */
-            //printf("Average of slave %d: %.2f\n", rank, avg);
             if(first){
                 beforeSend = MPI_Wtime();
                 int timePassed_ms = (beforeSend - afterSend)*1000;
@@ -274,20 +188,12 @@ int main(int argc, char *argv[]) {
                 first = 0;
             }
 
-            //printf("New generated data by slave %d: %.2f\n", rank, lastVal);
             MPI_Send(&lastVal, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
         
             afterSend = MPI_Wtime();           
         }        
-        
-
     }
-
-
-    
 
     MPI_Finalize();
     return 0;
 }
-
-

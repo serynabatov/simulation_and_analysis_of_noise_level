@@ -74,15 +74,13 @@ PROCESS_THREAD(node_process, ev, data)
     if(NETSTACK_ROUTING.node_is_reachable() && NETSTACK_ROUTING.get_root_ipaddr(&dest_ipaddr)) {
 			message.noise_level = noiseGen();
       /* Send to DAG root */
-      LOG_INFO("Sending Message N:%u V:%lf to ", message.message_id, message.noise_level);
+      LOG_INFO("Sending Message N:%u V:%lf to ", ++(message.message_id), message.noise_level);
       LOG_INFO_6ADDR(&dest_ipaddr);
       LOG_INFO_("\n");
       simple_udp_sendto(&udp_conn, &message, sizeof(msg_t), &dest_ipaddr);
-      ++(message.message_id);
     } else {
       LOG_INFO("Not reachable yet\n");
     }
-
 
     etimer_set(&periodic_timer, SEND_INTERVAL - CLOCK_SECOND);
   }

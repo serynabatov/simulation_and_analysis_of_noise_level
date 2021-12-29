@@ -1,4 +1,4 @@
-CONTIKI_PROJECT = sensor-simulator
+CONTIKI_PROJECT = node controller
 all: $(CONTIKI_PROJECT)
 
 CONTIKI = ../..

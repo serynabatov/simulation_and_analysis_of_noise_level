@@ -13,6 +13,8 @@
 #define UDP_CLIENT_PORT	8765
 #define UDP_SERVER_PORT	5678
 #define READINGS 6
+//K defined by the text
+#define K 50
 
 typedef struct noise_struct {
 	const uip_ipaddr_t addr;
@@ -81,6 +83,14 @@ static double averageCalc(noise_struct* current, uint16_t message_id) {
 	return sum/available_reads;
 }
 
+static void sendMQTT(noise_struct* current, double avrg) {
+	if (avrg > K) {
+		// Send raw values
+	} else {
+		// Send the average
+	}
+}
+
 PROCESS(controller_process, "Controller");
 AUTOSTART_PROCESSES(&controller_process);
 /*---------------------------------------------------------------------------*/
@@ -101,9 +111,10 @@ udp_rx_callback(struct simple_udp_connection *c,
   
   noise_struct* current = getEntry(*sender_addr);
 	appendNoiseLevel(current, message.noise_level);
-  LOG_INFO("Average: %lf\n", averageCalc(current, message.message_id));
-
-  //Send to NodeRed with MQTT
+	double avrg = averageCalc(current, message.message_id);
+  LOG_INFO("Average: %lf\n", avrg);
+  
+  sendMQTT(current, avrg);
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(controller_process, ev, data)

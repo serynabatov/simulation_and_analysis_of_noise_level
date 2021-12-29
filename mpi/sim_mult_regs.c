@@ -10,6 +10,112 @@
 #include "cJSON.h"
 #include "cJSON.c"
 
+static char* countryName = "Italy";
+
+void sleep_ms(double ms){
+    int t = ms*1000;
+    usleep(t);
+}
+
+double generate_data(double min, double max){
+    double range = max - min;
+    double div = RAND_MAX / range;
+    return min + rand()/div;
+}
+
+void init_arrays(double sws[][6], int counts[], int rank){
+    for(int i = 0; i < rank; i++){
+        counts[i] = 0;
+        for(int j = 0; j < 6; j++){
+            sws[i][j] = 0;
+        }
+    }
+}
+
+double get_new_avg(double sws[][6], int counts[], int rank, double data){
+    double avg; 
+    if(counts[rank] < 6){
+        sws[rank][counts[rank]] = data;      
+        counts[rank] += 1;
+        double rs = 0;
+        for(int i = 0; i < counts[rank]; i++){
+            rs += sws[rank][i];
+        }
+        avg = rs / counts[rank];
+    } else{
+        for(int i = 0; i < 6-1; i++){
+            sws[rank][i] = sws[rank][i+1];
+        }
+        sws[rank][5] = data;
+        double rs = 0;
+        for(int i = 0; i < counts[rank]; i++){
+            rs += sws[rank][i];
+        }
+        avg = rs / 6.0;
+    }
+    return avg;
+}
+
+void prepareJSon(int rank, int region_id, char* regionName, double avg, double sws[][6], int count, double threshold, char* jstring){
+    
+    
+    char str[160];
+    
+    strcpy(jstring, "{\"sensor_id\": ");
+    
+    sprintf(str, "%d,", rank);
+    strcat(jstring, str);
+
+    //strcpy(str, "";)
+
+    sprintf(str, "\"region_id\": %d,", region_id);
+    strcat(jstring, str);
+
+    sprintf(str, "\"region_name\": %s,", regionName);
+    strcat(jstring, str);
+
+    sprintf(str, "\"country_name\": %s}", countryName);
+    strcat(jstring, str);
+    
+    if(avg < threshold){
+        strcat(jstring, "\"type\": 0,");
+
+        sprintf(str, "\"value\": %.4f,", avg);
+        strcat(jstring, str);
+    } else{
+        strcat(jstring, "\"type\": 1,");
+
+        sprintf(str, "\"value\": [");
+        strcat(jstring, str);
+
+        for(int i = 0; i < count-1; i++){
+            sprintf(str, "%.4f, ", sws[rank][i]);
+            strcat(jstring, str);
+        }
+        sprintf(str, "%.4f],", sws[rank][count-1]);
+        strcat(jstring, str);
+    }
+    /*
+    time_t curtime;
+    time(&curtime);
+    char* timeStr = ctime(&curtime);
+    timeStr[strlen(timeStr)-1] = '\0';
+    */
+
+    struct timespec curtime;
+    clock_gettime(CLOCK_REALTIME, &curtime);
+
+    long totalTime = curtime.tv_sec*1000 + curtime.tv_nsec/1000000;
+
+    sprintf(str, "\"timestamp\": %ld,", totalTime);
+    strcat(jstring, str);
+
+    
+    //printf("%s\n", jstring);
+    
+    //return jstring;
+}
+
 int main(int argc, char *argv[]) {
     
     MPI_Init(&argc, &argv);
@@ -91,19 +197,94 @@ int main(int argc, char *argv[]) {
 
             //printf("This is region %d, named %s with %d sensors starting from rank %d\n", region_id, region_name, n_sensors, sensorRankStart);
 
+            
             for(int i = 0; i < n_sensors; i++){
                 MPI_Send(&i, 1, MPI_INT, i + sensorRankStart, 0, MPI_COMM_WORLD);
+            }
+           
+            
+            // Microcontrollers are ready
+
+            double val;
+            double sws[n_sensors][6];
+            int counts[n_sensors];
+            int threshold = 15;
+            
+
+            init_arrays(sws, counts, n_sensors);
+
+            //printf("rank: %d, region id: %d, sensor rank start: %d\n", rank, region_id, sensorRankStart);
+
+            double avg;
+
+            
+            
+            while(1){
+                
+                char message[2000];
+                char jstring[500];
+                MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+
+                //printf("rank: %d, region id: %d, sensor rank start: %d\n", rank, region_id, sensorRankStart);
+                
+        
+                int src = status.MPI_SOURCE;
+                int src_id = src - sensorRankStart;
+                //if(rank == 1) printf("%d\n", n_sensors);
+                //printf("This is region %d. Message received by sensor %d.\n", region_id, src_id);
+                
+                MPI_Recv(&val, 1, MPI_DOUBLE, src, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+                
+                avg = get_new_avg(sws, counts, src_id, val);
+                
+                prepareJSon(src_id, region_id, region_name, avg, sws, counts[src_id], threshold, jstring);
+
+                printf("%s\n", jstring);
+
             }
             
         } else{ // sensors
             int sensor_id;
             MPI_Status status;
             MPI_Probe(MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
-            int belonged_mc = status.MPI_SOURCE;
+            int belonged_mc_rank = status.MPI_SOURCE;
 
-            MPI_Recv(&sensor_id, 1, MPI_INT, belonged_mc, 0, MPI_COMM_WORLD, &status);
+            MPI_Recv(&sensor_id, 1, MPI_INT, belonged_mc_rank, 0, MPI_COMM_WORLD, &status);
 
-            printf("This is sensor %d for mc %d with rank %d\n", sensor_id, belonged_mc, rank);
+            //printf("This is sensor %d for mc %d with rank %d\n", sensor_id, belonged_mc, rank);
+
+            // Sensors are ready
+            double lastVal;
+            double afterSend = 0.0;
+            double beforeSend = 0.0;
+            double minVal = 5;
+            double maxVal = 25;  
+            int first = 1;
+            int periodInMs = 2000;
+
+            while(1){
+
+                lastVal = generate_data(minVal, maxVal);
+
+                if(!first){
+                    first = 0;
+                    beforeSend = MPI_Wtime();
+                    int timePassed_ms = (beforeSend - afterSend)*1000;
+                    int waitDuration_ms = periodInMs - timePassed_ms;
+                    if(waitDuration_ms > 0){
+                        sleep_ms(waitDuration_ms);
+                    }
+                }
+                //if(rank == 23)
+                //printf("%d\n", belonged_mc);
+                MPI_Send(&lastVal, 1, MPI_DOUBLE, belonged_mc_rank, 0, MPI_COMM_WORLD);
+
+                //printf("Sensor with rank %d, sensor_id %d, sending to mc with rank %d\n", rank, sensor_id, belonged_mc_rank);
+                //break;
+
+                afterSend = MPI_Wtime();
+            }
+
 
         }
 

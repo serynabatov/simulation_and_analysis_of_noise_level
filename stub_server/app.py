@@ -2,6 +2,7 @@ from flask import Flask, request
 
 app = Flask(__name__)
 
+arr = []
 
 @app.route('/', methods=['POST'])
 def hello_world():  # put application's code here

@@ -1,0 +1,23 @@
+{
+    "n_regions":3,
+    "regions": [
+        {
+           "region_id": 0,
+           "region_name": "Lombardia",
+           "n_sensors": 8,
+           "data_path": ["s0.csv", "s1.csv", "s2.csv", "s3.csv", "s4.csv", "s5.csv", "s6.csv", "s7.csv"]
+	}, 
+	{
+           "region_id": 1,
+           "region_name": "Piemonte",
+           "n_sensors": 7,
+           "data_path": ["s0.csv", "s1.csv", "s2.csv", "s3.csv", "s4.csv", "s5.csv", "s6.csv"]
+	},
+    {
+           "region_id": 2,
+           "region_name": "Veneto",
+           "n_sensors": 6,
+           "data_path": ["s0.csv", "s1.csv", "s2.csv", "s3.csv", "s4.csv", "s5.csv"]
+	}
+    ]
+}

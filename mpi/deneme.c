@@ -186,13 +186,14 @@ int main(int argc, char *argv[]) {
         MPI_Status status;
        
 
-        char message[2000];
+        
         char server_reply[2000];
-        char jstring[500];
+        
         while (1)
         {
             
-          
+            char message[2000];
+            char jstring[500];
             printf("Getting values\n");
             MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
         
@@ -215,13 +216,20 @@ int main(int argc, char *argv[]) {
 
             preparePostRequest(message, jstring, targetIP);
 
+
+
             printf("Will send to server\n");
-            
-            if(send(socket_desc, message, strlen(message), 0) < 0){
+            int answer = send(socket_desc, message, strlen(message), 0);
+            printf("Answer: %d\n", answer);
+            if(answer < 0){
                 printf("Send failed\n");
                 return 2;
             }
             printf("Data sent\n\n");
+
+            //free(message);
+            //free(jstring);
+            
 		
 
             /*

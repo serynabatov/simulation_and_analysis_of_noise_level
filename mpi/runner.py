@@ -15,5 +15,5 @@ for region in data["regions"]:
 
 
 
-os.system("mpicc -o sim sim_mult_regs.c")
+os.system("make")
 os.system("mpirun -oversubscribe -np {} sim".format(n_sensors+n_regions+1))

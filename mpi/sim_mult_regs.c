@@ -9,6 +9,7 @@
 #include <arpa/inet.h>
 #include "cJSON.h"
 #include "cJSON.c"
+#include "mqtt-client.h"
 
 static char* countryName = "Italy";
 
@@ -74,7 +75,7 @@ void prepareJSon(int rank, int region_id, char* regionName, double avg, double s
     sprintf(str, "\"region_name\": %s,", regionName);
     strcat(jstring, str);
 
-    sprintf(str, "\"country_name\": %s}", countryName);
+    sprintf(str, "\"country_name\": %s,", countryName);
     strcat(jstring, str);
     
     if(avg < threshold){
@@ -107,7 +108,7 @@ void prepareJSon(int rank, int region_id, char* regionName, double avg, double s
 
     long totalTime = curtime.tv_sec*1000 + curtime.tv_nsec/1000000;
 
-    sprintf(str, "\"timestamp\": %ld,", totalTime);
+    sprintf(str, "\"timestamp\": %ld}", totalTime);
     strcat(jstring, str);
 
     
@@ -240,6 +241,11 @@ int main(int argc, char *argv[]) {
                 prepareJSon(src_id, region_id, region_name, avg, sws, counts[src_id], threshold, jstring);
 
                 printf("%s\n", jstring);
+
+                if (sending_mqtt("abc") != 0) {
+                    printf("Send failed!\n");
+                return 2;
+            }
 
             }
             

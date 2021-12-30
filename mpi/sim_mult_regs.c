@@ -242,10 +242,10 @@ int main(int argc, char *argv[]) {
 
                 printf("%s\n", jstring);
 
-                if (sending_mqtt("abc") != 0) {
+                if (sending_mqtt(jstring) != 0) {
                     printf("Send failed!\n");
-                return 2;
-            }
+                    return 2;
+                }
 
             }
             

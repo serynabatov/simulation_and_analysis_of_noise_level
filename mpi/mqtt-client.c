@@ -4,7 +4,7 @@
 #include "MQTTClient.h"
 #include "mqtt-client.h"
 
-#define ADDRESS     "tcp://mqtt.eclipseprojects.io:1883"
+#define ADDRESS     "tcp://localhost:1883"
 #define CLIENTID    "ExampleClientPub"
 #define TOPIC       "my_topic_test"
 #define QOS         1

@@ -240,8 +240,9 @@ int main(int argc, char *argv[]) {
                 
                 prepareJSon(src_id, region_id, region_name, avg, sws, counts[src_id], threshold, jstring);
 
-                printf("%s\n", jstring);
+                //printf("%s\n", jstring);
 
+                // TODO Only one microcontroller can send. Why?
                 if (sending_mqtt(jstring) != 0) {
                     printf("Send failed!\n");
                     return 2;

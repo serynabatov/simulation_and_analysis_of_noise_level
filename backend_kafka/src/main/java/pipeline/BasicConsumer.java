@@ -10,7 +10,7 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 
 public class BasicConsumer {
     private static final String defaultGroupId = "groupA";
-    private static final String defaultTopic = "sensor-event";
+    private static final String defaultTopic = "sensor-readings";
 
     private static final String serverAddr = "localhost:9092";
     private static final boolean autoCommit = true;

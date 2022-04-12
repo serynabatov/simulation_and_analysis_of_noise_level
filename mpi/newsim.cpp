@@ -1,8 +1,8 @@
-# include <cstdlib>
-# include <ctime>
-# include <iomanip>
-# include <iostream>
-# include <mpi.h>
+#include <cstdlib>
+#include <ctime>
+#include <iomanip>
+#include <iostream>
+#include <mpi.h>
 #include "cJSON.h"
 #include "cJSON.c"
 #include <string.h>

@@ -3,8 +3,7 @@
 #include <iomanip>
 #include <iostream>
 #include <mpi.h>
-#include "cJSON.h"
-#include "cJSON.c"
+#include "cjson/cJSON.h"
 #include <string.h>
 #include <vector>
 #include <cmath>
@@ -166,13 +165,7 @@ int main ( int argc, char *argv[] ){
                         NULL, 0, 0, NULL, NULL);
 
         producer->poll(0);
-      }
-      
-
-      
-
-     
-       
+      }       
     }
   }
 

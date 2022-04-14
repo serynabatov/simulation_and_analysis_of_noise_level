@@ -119,7 +119,7 @@ int main ( int argc, char *argv[] ){
        double noises[message_len];
        MPI_Recv(noises, message_len, MPI_DOUBLE, src, 0, MPI_COMM_WORLD, &status);
        
-      int num_sources = (message_len-2)/2;
+      int num_sources = message_len/4;
 
 
       // send each noise measurement one by one
@@ -145,8 +145,8 @@ int main ( int argc, char *argv[] ){
         sprintf(timestamp, "%ld", totalTime);
 
         // add key-values to json
-        cJSON_AddNumberToObject(message, "x", noises[num_sources*2]);
-        cJSON_AddNumberToObject(message, "y", noises[num_sources*2+1]);
+        cJSON_AddNumberToObject(message, "x", noises[i + num_sources*2]);
+        cJSON_AddNumberToObject(message, "y", noises[i + num_sources*3]);
         cJSON_AddNumberToObject(message, "value", noises[i]);
         cJSON_AddBoolToObject(message, "exceeded", value_exceeded);
         cJSON_AddStringToObject(message, "timestamp", timestamp);
@@ -240,7 +240,7 @@ int main ( int argc, char *argv[] ){
     cJSON *thr_obj = cJSON_GetObjectItemCaseSensitive(region_obj, "thr");
     double threshold = thr_obj->valuedouble;
 
-    cout << "everything is fine00000" << endl;
+   
 
     
     
@@ -275,33 +275,44 @@ int main ( int argc, char *argv[] ){
       directions_x.push_back(dx);
       directions_y.push_back(dy);
     }
-
+    int num_sources = locations_x.size();
     // sliding window for noises
-    double noises[locations_x.size()][6];
+    double noises[num_sources][6];
+
+    /*
     for(int i = 0; i < locations_x.size(); i++){
       for(int j = 0; j < 6; j++){
         noises[i][j] = 0;
       }
     }
+    */
+
+    double past_locations_x[num_sources][6];
+    double past_locations_y[num_sources][6];
+
+
     // the list of values to be sent to the main node
     // num_sources = locations_x.size()
     // 0, num_sources -> noise value
     // num_sources, num_sources*2 -> whether it's an avg or raw reading, 0 if avg, 100 if raw reading
-    double noises_to_send[locations_x.size()*2 + 2];
-    for(int i = 0; i < locations_x.size(); i++){
+    // num_sources*2, num_sources*3 -> location x
+    // num_sources*3, num_sources*4 -> location y
+    double noises_to_send[num_sources*4];
+    for(int i = 0; i < num_sources; i++){
       noises_to_send[i] = 0;
     }
-    noises_to_send[locations_x.size()*2] = gateway_location_x;
-    noises_to_send[locations_x.size()*2+1] = gateway_location_y;
+    
 
     int num_measurements = 0;
     int sw_index = 0;
     // get noise and relocate
     while(true){
       // noise 
-      for(int i = 0; i < locations_x.size(); i++){
+      for(int i = 0; i < num_sources; i++){
         noises[i][sw_index] = 0;
-        for(int j = 0; j < locations_x.size(); j++){
+        past_locations_x[i][sw_index] = locations_x[i];
+        past_locations_y[i][sw_index] = locations_y[i];
+        for(int j = 0; j < num_sources; j++){
           double dist_x = locations_x[i] - locations_x[j];
           double dist_y = locations_y[i] - locations_y[j];
           double dist = sqrt(dist_x*dist_x + dist_y*dist_y);
@@ -316,6 +327,8 @@ int main ( int argc, char *argv[] ){
             }
           }
 
+          
+
         }
       }
       
@@ -328,19 +341,28 @@ int main ( int argc, char *argv[] ){
       }
       
       // TODO don't send averages until we reach 6 meaurements
-      for(int i = 0; i < locations_x.size(); i++){
+      for(int i = 0; i < num_sources; i++){
         double sum = 0;
+        double sum_loc_x = 0;
+        double sum_loc_y = 0;
         for(int j = 0; j < num_measurements; j++){
           sum += noises[i][j];
+          sum_loc_x += past_locations_x[i][j];
+          sum_loc_y += past_locations_y[i][j];
         }
         double avg = sum / num_measurements;
         if(avg > threshold){ 
           noises_to_send[i] = noises[i][old_index];
-          noises_to_send[i+V+P] = 0;
+          noises_to_send[i+num_sources] = 0;
+
+          noises_to_send[i + num_sources*2] = past_locations_x[i][old_index];
+          noises_to_send[i + num_sources*3] = past_locations_y[i][old_index];
         }
         else{ 
           noises_to_send[i] = avg;
-          noises_to_send[i+V+P] = 100;
+          noises_to_send[i+num_sources] = 100;
+          noises_to_send[i + num_sources*2] = sum_loc_x / num_measurements;
+          noises_to_send[i + num_sources*3] = sum_loc_y / num_measurements;
         }
       }
       
@@ -348,7 +370,7 @@ int main ( int argc, char *argv[] ){
       
 
       // send to main node
-      MPI_Send(noises_to_send, locations_x.size()*2+2, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
+      MPI_Send(noises_to_send, num_sources*4, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
      
       // TODO can make sleep time more accurate
       sleep_ms(2000);

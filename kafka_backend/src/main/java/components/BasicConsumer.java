@@ -1,4 +1,4 @@
-package pipeline;
+package components;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
@@ -9,9 +9,9 @@ import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.common.serialization.StringDeserializer;
 
 public class BasicConsumer {
+
     private static final String defaultGroupId = "groupA";
     private static final String defaultTopic = "sensor-readings";
-
     private static final String serverAddr = "localhost:9092";
     private static final boolean autoCommit = true;
     private static final int autoCommitIntervalMs = 15000;
@@ -49,4 +49,5 @@ public class BasicConsumer {
             }
         }
     }
+
 }

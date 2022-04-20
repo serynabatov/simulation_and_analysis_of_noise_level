@@ -41,12 +41,16 @@ public class BasicConsumer {
         while (true) {
             final ConsumerRecords<String, String> records = consumer.poll(Duration.of(5, ChronoUnit.MINUTES));
             for (final ConsumerRecord<String, String> record : records) {
-                System.out.println("Partition: " + record.partition() +
-                        "\tOffset: " + record.offset() +
-                        "\tKey: " + record.key() +
-                        "\tValue: " + record.value()
-                );
+                try {
+                    DatabaseManager databaseManager = new DatabaseManager(record.value());
+                    String sendValue = databaseManager.start();
+                    EnrichedProducer enrichedProducer = new EnrichedProducer(serverAddr);
+                    enrichedProducer.publishMessage(record.key(), sendValue);
+                } catch (InterruptedException e) {
+                    System.out.println("Interrupt Exception here!");
+                }
             }
+
         }
     }
 

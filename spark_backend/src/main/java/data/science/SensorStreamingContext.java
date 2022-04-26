@@ -27,6 +27,8 @@ public class SensorStreamingContext {
                 .option("subscribe", "data-prepared")
                 .load();
 
+        System.out.println(df.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)"));
+
         spark.close();
     }
 

@@ -3,7 +3,9 @@
 #include "net/netstack.h"
 #include "net/ipv6/simple-udp.h"
 
+#include "mqtt_lib.h"
 #include "transmission.h"
+
 #include <stdlib.h>
 
 #include "sys/log.h"
@@ -85,9 +87,11 @@ static double averageCalc(noise_struct* current, uint16_t message_id) {
 
 static void sendMQTT(noise_struct* current, double avrg) {
 	if (avrg > K) {
-		// Send raw values
+		LOG_INFO("Sending raw values\n");
+		state_machine();
 	} else {
-		// Send the average
+		LOG_INFO("Sending the average\n");
+		state_machine();
 	}
 }
 
@@ -121,6 +125,11 @@ PROCESS_THREAD(controller_process, ev, data)
 {
   PROCESS_BEGIN();
 
+  PROCESS_NAME(webserver_nogui_process);
+  process_start(&webserver_nogui_process, NULL);
+
+  LOG_INFO("Region Border Router started\n");
+  
   /* Initialize DAG root */
   NETSTACK_ROUTING.root_start();
 

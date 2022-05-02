@@ -7,6 +7,7 @@ import org.apache.spark.api.java.function.ForeachFunction;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.streaming.StreamingQueryException;
 import org.apache.spark.sql.types.*;
 import org.apache.spark.streaming.Duration;
 import org.apache.spark.streaming.Durations;
@@ -41,17 +42,19 @@ public class SensorStreamingContext {
                 .option("subscribe", "data-prepared")
                 .load();
 
-        raw_df.selectExpr("CAST(key AS STRING)", "CAST(value as STRING)");
+        raw_df.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)");
+
+        raw_df.writeStream().format("memory").queryName("d").start();
 
         val point_schema = new StructType()
                 .add("x", DataTypes.FloatType, true)
                 .add("y", DataTypes.FloatType, true)
-                .add("db", DataTypes.FloatType, true)
+                /*.add("db", DataTypes.FloatType, true)
                 .add("exceeded", DataTypes.BooleanType, true)
                 .add("timestamp", DataTypes.StringType, true)
                 .add("pointOfInterest", DataTypes.createArrayType(new PointOfInterestUDT()), true)
                 .add("noiseLevel", DataTypes.StringType, true)
-                .add("timeOfTheDay", DataTypes.StringType, true);
+                .add("timeOfTheDay", DataTypes.StringType, true)*/;
 
         Dataset<Row> point_sdf = raw_df.select(from_json(raw_df.col("value").cast("string"), DataType.fromJson(point_schema.json())).as("data")).select("data.*");
 
@@ -59,6 +62,7 @@ public class SensorStreamingContext {
 
         while (true) {
             spark.sql("SELECT * FROM fuck ORDER BY timestamp").show(5);
+            //spark.sql("SELECT value FROM d").show();
         }
 
         //spark.close();

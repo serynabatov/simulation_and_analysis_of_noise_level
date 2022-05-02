@@ -23,7 +23,7 @@ public class SensorStreamingContext {
     // Link:
     //https://spark.apache.org/docs/latest/structured-streaming-kafka-integration.html
     
-    public static void main(String[] args) throws TimeoutException {
+    public static void main(String[] args) throws TimeoutException, StreamingQueryException {
         final String master = args.length > 0 ? args[0] : "local[4]";
 
         final SparkSession spark = SparkSession
@@ -42,8 +42,16 @@ public class SensorStreamingContext {
                 .option("subscribe", "data-prepared")
                 .load();
 
-        raw_df.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)");
+        raw_df.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
+                .writeStream()
+                .format("console")
+                .start();
 
+        spark.streams().awaitAnyTermination();
+
+
+
+        /*
         raw_df.writeStream().format("memory").queryName("d").start();
 
         val point_schema = new StructType()
@@ -55,7 +63,7 @@ public class SensorStreamingContext {
                 .add("pointOfInterest", DataTypes.createArrayType(new PointOfInterestUDT()), true)
                 .add("noiseLevel", DataTypes.StringType, true)
                 .add("timeOfTheDay", DataTypes.StringType, true)*/;
-
+        /*
         Dataset<Row> point_sdf = raw_df.select(from_json(raw_df.col("value").cast("string"), DataType.fromJson(point_schema.json())).as("data")).select("data.*");
 
         val basicQuery = point_sdf.writeStream().format("memory").queryName("fuck").start();
@@ -66,6 +74,8 @@ public class SensorStreamingContext {
         }
 
         //spark.close();
+        */
+
     }
 
 }

@@ -19,6 +19,7 @@
 #include <csignal>
 #include <cstring>
 #include <librdkafka/rdkafkacpp.h>
+#include "utilities/stringutility.h"
 
 static volatile sig_atomic_t run = 1;
 
@@ -102,7 +103,6 @@ int main ( int argc, char *argv[] ){
     }
 
     
-
     delete conf;
     
 
@@ -152,24 +152,25 @@ int main ( int argc, char *argv[] ){
 
         // conver json to string
         char* msgstr = cJSON_Print(message);
-        /*
-        printf("%s\n\n", msgstr);
-        printf("Message length: %ld\n\n", strlen(msgstr));
-        */
         
+        std::string x = tokenize(std::to_string(noises[i + num_sources * 2]), ".");
+        std::string y = tokenize(std::to_string(noises[i + num_sources * 3]), ".");
+        
+        std::string keyString = x + y;
+
+        char* key = &keyString[0];
+
         // send to kafka broker
         RdKafka::ErrorCode err = producer->produce(topic, 
                         RdKafka::Topic::PARTITION_UA, 
                         RdKafka::Producer::RK_MSG_COPY, 
                         msgstr, strlen(msgstr), 
-                        NULL, 0, 0, NULL, NULL);
+                        key, strlen(key), 0, NULL, NULL);
 
         producer->poll(0);
       }       
     }
-  }
-
-  else{
+  } else{
 
     // get parameters for the region
     FILE *f = fopen("regions.json", "rb");
@@ -272,13 +273,6 @@ int main ( int argc, char *argv[] ){
     // sliding window for noises
     double noises[num_sources][6];
 
-    /*
-    for(int i = 0; i < locations_x.size(); i++){
-      for(int j = 0; j < 6; j++){
-        noises[i][j] = 0;
-      }
-    }
-    */
 
     double past_locations_x[num_sources][6];
     double past_locations_y[num_sources][6];

@@ -33,11 +33,11 @@ public class EnrichedPointOfInterest {
                 "\"latitude\": " + x + ", " +
                 "\"longitude\": " + y + ", " +
                 "\"db\": " + db + ", " +
-                "\"exceeded\": " + exceeded + ", " +
+                "\"exceeded\": " +  exceeded + ", " +
                 "\"timestamp\": " + timestamp + ", " +
                 "\"pointOfInterest\": " + points.toString() + ", " +
-                "\"noiseLevel\": " + noiseLevel + ", " +
-                "\"timeOfTheDay\": " + timeOfTheDay +
+                "\"noiseLevel\": " + "\"" + noiseLevel + "\"" + ", " +
+                "\"timeOfTheDay\": " + "\"" + timeOfTheDay +  "\"" +
                 "}";
     }
 

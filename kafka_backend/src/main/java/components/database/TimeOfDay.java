@@ -44,6 +44,10 @@ public class TimeOfDay extends Thread {
                 se.printStackTrace();
             }
         }
+
+        if (value == null) {
+            value = "None";
+        }
     }
 
     public String getValue() {

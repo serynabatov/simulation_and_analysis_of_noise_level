@@ -18,7 +18,7 @@ public class PointOfInterest {
                 "\"id\": " + id + ", " +
                 "\"lat\": " + lat + ", " +
                 "\"lon\": " + lon + ", " +
-                "\"name\": " + name + "" +
+                "\"name\": " + "\"" + name + "\"" + "" +
                 "}";
     }
 

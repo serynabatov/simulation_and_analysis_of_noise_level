@@ -8,7 +8,7 @@
 #include <stdlib.h>
 
 #include "sys/log.h"
-#define LOG_MODULE "App"
+#define LOG_MODULE "Node"
 #define LOG_LEVEL LOG_LEVEL_INFO
 
 #define WITH_SERVER_REPLY  1
@@ -63,6 +63,8 @@ PROCESS_THREAD(node_process, ev, data)
 
   PROCESS_BEGIN();
 
+	LOG_INFO("Node Process\n");
+	
   /* Initialize UDP connection */
   simple_udp_register(&udp_conn, UDP_CLIENT_PORT, NULL,
                       UDP_SERVER_PORT, udp_rx_callback);

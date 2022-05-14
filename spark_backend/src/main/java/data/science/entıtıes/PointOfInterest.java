@@ -24,7 +24,7 @@ public class PointOfInterest implements Serializable {
                 "\"id\": " + id + ", " +
                 "\"lat\": " + lat + ", " +
                 "\"lon\": " + lon + ", " +
-                "\"name\": " + name + "" +
+                "\"name\": " + "\"" + name + "\"" +
                 "}";
     }
 

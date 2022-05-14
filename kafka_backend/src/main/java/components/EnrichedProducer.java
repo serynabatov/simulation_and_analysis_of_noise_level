@@ -1,10 +1,10 @@
 package components;
 
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
@@ -17,9 +17,9 @@ public class EnrichedProducer {
 
     public EnrichedProducer(String serverAddr) {
         final Properties propertiesPublish = new Properties();
-        propertiesPublish.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, serverAddr);
-        propertiesPublish.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        propertiesPublish.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        propertiesPublish.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, serverAddr);
+        propertiesPublish.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        propertiesPublish.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         producer = new KafkaProducer<String, String>(propertiesPublish);
     }
 

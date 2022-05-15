@@ -9,6 +9,8 @@
 #define MQTT_CLIENT_SUB_TOPIC       "iot/native/launchpad/json"
 
 #define MQTT_CLIENT_BROKER_IP_ADDR "fd00::1"
+
+#define IEEE802154_CONF_DEFAULT_CHANNEL      21
 //*---------------------------------------------------------------------------*/
 #endif /* PROJECT_CONF_H_ */
 /*---------------------------------------------------------------------------*/

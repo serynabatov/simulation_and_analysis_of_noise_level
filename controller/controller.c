@@ -3,7 +3,7 @@
 #include "net/netstack.h"
 #include "net/ipv6/simple-udp.h"
 
-#include "transmission.h"
+#include "../transmission.h"
 #include <stdlib.h>
 
 #include "sys/log.h"
@@ -606,7 +606,6 @@ PROCESS_THREAD(mqtt_client_process, ev, data)
   init_config();
   update_config();
 
-  /* Main loop */
   while(1) {
 
     PROCESS_YIELD();

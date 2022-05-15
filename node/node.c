@@ -4,7 +4,7 @@
 #include "net/netstack.h"
 #include "net/ipv6/simple-udp.h"
 
-#include "transmission.h"
+#include "../transmission.h"
 #include <stdlib.h>
 
 #include "sys/log.h"

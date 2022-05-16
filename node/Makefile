@@ -1,5 +1,7 @@
-CONTIKI_PROJECT = node
-all: $(CONTIKI_PROJECT)
+all: node
+
+MODULES += os/net/app-layer/mqtt
+MODULES += os/storage/cfs
 
 CONTIKI = /home/user/Desktop/contiki-ng-mw-2122
 

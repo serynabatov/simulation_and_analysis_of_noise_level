@@ -225,12 +225,14 @@ int main ( int argc, char *argv[] ){
 
     // set random locations and directions
     for(int i = 0; i < P+V; i++){
+      // locations
       double x = fRand(WS, WE);
       double y = fRand(LS, LE);
 
       locations_x.push_back(x);
       locations_y.push_back(y);
 
+      // directions
       double dx = fRand(-10, 10);
       double dy = fRand(-10, 10);
 
@@ -243,10 +245,9 @@ int main ( int argc, char *argv[] ){
       directions_y.push_back(dy);
     }
     int num_sources = locations_x.size();
+    
     // sliding window for noises
     double noises[num_sources][6];
-
-
     double past_locations_x[num_sources][6];
     double past_locations_y[num_sources][6];
 

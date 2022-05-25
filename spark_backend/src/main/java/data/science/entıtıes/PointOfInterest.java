@@ -3,7 +3,6 @@ package data.science.entıtıes;
 import data.science.udt.PointOfInterestUDT;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.SQLUserDefinedType;
 
 import java.io.Serializable;

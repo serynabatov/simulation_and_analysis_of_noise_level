@@ -1,6 +1,6 @@
 package data.science;
 
-import data.science.udt.PointOfInterestUDT;
+import data.science.utilities.StructureType;
 import lombok.val;
 import org.apache.spark.api.java.function.VoidFunction2;
 import org.apache.spark.sql.Dataset;
@@ -16,9 +16,6 @@ import static org.apache.spark.sql.functions.*;
 
 public class SensorStreamingContext {
 
-    // Link:
-    //https://spark.apache.org/docs/latest/structured-streaming-kafka-integration.html
-    
     public static void main(String[] args) throws TimeoutException, StreamingQueryException {
         final String master = args.length > 0 ? args[0] : "local[4]";
 
@@ -28,34 +25,20 @@ public class SensorStreamingContext {
                 .appName("StructuredStreamingWordCount")
                 .getOrCreate();
 
-        Dataset<Row> raw_df = spark
+        Dataset<Row> rawDf = spark
                 .readStream()
                 .format("kafka")
                 .option("kafka.bootstrap.servers", "localhost:9092")
                 .option("subscribe", "data-prepared")
                 .load();
 
-        StructType point_schema = new StructType()
-                .add("latitude", DataTypes.FloatType, true)
-                .add("longitude", DataTypes.FloatType, true)
-                .add("db", DataTypes.FloatType, true)
-                .add("exceeded", DataTypes.BooleanType, true)
-                .add("timestamp", DataTypes.LongType, true)
-                .add("pointOfInterest", DataTypes.createArrayType(new PointOfInterestUDT()), true)
-                .add("noiseLevel", DataTypes.StringType, true)
-                .add("timeOfTheDay", DataTypes.StringType,  false);
+        StructType pointSchema = StructureType.pointSchemaCreate();
 
-        Dataset<Row> point_sdf = raw_df.select(from_json(raw_df.col("value").cast("string"), DataType.fromJson(point_schema.json())).as("data")).select(col("data.*"));
+        Dataset<Row> pointSdf = rawDf.select(from_json(rawDf.col("value").cast("string"), DataType.fromJson(pointSchema.json())).as("data")).select(col("data.*"));
 
-        //val basicQuery = point_sdf.writeStream().format("console").queryName("basic").start();
+        StructType pointOfInterestSchema = StructureType.pointOfInterestSchemaCreate();
 
-        StructType pointOfInterestSchema = new StructType()
-                .add("id", DataTypes.IntegerType, true)
-                .add("lat", DataTypes.FloatType, true)
-                .add("lon", DataTypes.FloatType, true)
-                .add("name", DataTypes.StringType, true);
-
-        Dataset<Row> noiseEvent = point_sdf.withColumn("pointOfInterest", explode(col("pointOfInterest"))).as("data")
+        Dataset<Row> noiseEvent = pointSdf.withColumn("pointOfInterest", explode(col("pointOfInterest"))).as("data")
                 .select("data.*")
                 .select(from_json(col("data.pointOfInterest").cast("string"), DataType.fromJson(pointOfInterestSchema.json())).as("point"),
                         col("latitude"),
@@ -91,12 +74,8 @@ public class SensorStreamingContext {
                                                         "id", "latitude_poi", "longitude_poi"   , "name", "exceeded").
                                                 max("db");
 
-        //val effectiveNoiseQuery = effectiveNoiseView.writeStream().format("console").queryName("effective").start();
-
         // Q1
-
         // Hourly
-
         val hourlyQuery = effectiveNoiseView.
                 writeStream()
                 .format("console")
@@ -118,7 +97,6 @@ public class SensorStreamingContext {
                 .start();
 
         // Daily
-
         val dailQuery = effectiveNoiseView
                 .writeStream()
                 .queryName("daily")
@@ -138,7 +116,6 @@ public class SensorStreamingContext {
                 .start();
 
         // Weekly
-
         val weeklyQuery = effectiveNoiseView
                 .writeStream()
                 .queryName("weeklyQuery")
@@ -159,7 +136,6 @@ public class SensorStreamingContext {
                 .start();
 
         // Q2
-
         val topTenQuery = effectiveNoiseView
                 .writeStream()
                 .queryName("TopTen")
@@ -179,7 +155,6 @@ public class SensorStreamingContext {
                 .start();
 
         // Q3
-
         // Exceeded noise view
         Dataset<Row> exceededNoise = effectiveNoiseView.filter(col("exceeded").equalTo(true));
 

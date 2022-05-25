@@ -1,7 +1,6 @@
 package data.science.udt;
 
 import data.science.entıtıes.PointOfInterest;
-import org.apache.hadoop.mapreduce.ID;
 import org.apache.spark.sql.catalyst.InternalRow;
 import org.apache.spark.sql.catalyst.expressions.GenericInternalRow;
 import org.apache.spark.sql.types.*;

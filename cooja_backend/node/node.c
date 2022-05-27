@@ -357,14 +357,13 @@ publish(void)
 
   len = snprintf(buf_ptr, remaining,
                  "{"
-                 "\"d\":{"
                  "\"Node_ID\":\"%s\","
                  "\"Seq #\":%d,"
-                 "\"Uptime (sec)\":%lu,"
                  "\"Latitude\":%s,"
                  "\"Longitude\":%s,"
-                 "\"Noise (db)\":%s",
-                 node_id_string, seq_nr_value, clock_seconds(), row.lat, row.lot, row.noise); 
+                 "\"Noise (db)\":%s"
+                 "}",
+                 node_id_string, seq_nr_value, row.lat, row.lot, row.noise); 
                              
   if(len < 0 || len >= remaining) {
     LOG_ERR("Buffer too short. Have %d, need %d + \\0\n", remaining, len);

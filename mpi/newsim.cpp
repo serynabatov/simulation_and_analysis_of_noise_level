@@ -20,6 +20,8 @@
 #include <cstring>
 #include <librdkafka/rdkafkacpp.h>
 #include "utilities/stringutility.h"
+#include "utilities/basic_utils.h"
+#include "utilities/cjson_utils.h"
 
 static volatile sig_atomic_t run = 1;
 
@@ -42,30 +44,14 @@ class ExampleDeliveryReportCb : public RdKafka::DeliveryReportCb {
   }
 };
 
+
+
 using namespace std;
 
-double clamp(double val, double min, double max){
-  if(val < min) return min;
-  else if (val > max) return max;
-  else return val;
-}
-
-void sleep_ms(double ms){
-    int t = ms*1000;
-    usleep(t);
-}
-
-void timestamp ();
-
-double fRand(double fMin, double fMax)
-{
-    double f = (double)rand() / RAND_MAX;
-    return fMin + f * (fMax - fMin);
-}
-
 int main ( int argc, char *argv[] ){
-  int rank, size;
 
+  //Initialize each processor and set the random seeds
+  int rank, size;
   MPI_Init(&argc, &argv);
   MPI_Comm_size ( MPI_COMM_WORLD, &size);
   MPI_Comm_rank ( MPI_COMM_WORLD, &rank);
@@ -135,22 +121,13 @@ int main ( int argc, char *argv[] ){
         }
 
         // get the timestamp
-        struct timespec curtime;
-        clock_gettime(CLOCK_REALTIME, &curtime);
-
-        long totalTime = curtime.tv_sec*1000 + curtime.tv_nsec/1000000;
         char timestamp[40];
-
-        sprintf(timestamp, "%ld", totalTime);
+        get_timestamp(timestamp);
 
         // add key-values to json
-        cJSON_AddNumberToObject(message, "x", noises[i + num_sources*2]);
-        cJSON_AddNumberToObject(message, "y", noises[i + num_sources*3]);
-        cJSON_AddNumberToObject(message, "value", noises[i]);
-        cJSON_AddBoolToObject(message, "exceeded", value_exceeded);
-        cJSON_AddStringToObject(message, "timestamp", timestamp);
+        create_json(message, noises[i + num_sources*2], noises[i + num_sources*3], noises[i], value_exceeded, timestamp);
 
-        // conver json to string
+        // convert json to string
         char* msgstr = cJSON_Print(message);
         
         std::string x = tokenize(std::to_string(noises[i + num_sources * 2]), ".");
@@ -234,10 +211,6 @@ int main ( int argc, char *argv[] ){
     cJSON *thr_obj = cJSON_GetObjectItemCaseSensitive(region_obj, "thr");
     double threshold = thr_obj->valuedouble;
 
-   
-
-    
-    
     // do the simulation
     // initialization
     vector<double> locations_x;
@@ -252,12 +225,14 @@ int main ( int argc, char *argv[] ){
 
     // set random locations and directions
     for(int i = 0; i < P+V; i++){
+      // locations
       double x = fRand(WS, WE);
       double y = fRand(LS, LE);
 
       locations_x.push_back(x);
       locations_y.push_back(y);
 
+      // directions
       double dx = fRand(-10, 10);
       double dy = fRand(-10, 10);
 
@@ -270,10 +245,9 @@ int main ( int argc, char *argv[] ){
       directions_y.push_back(dy);
     }
     int num_sources = locations_x.size();
+    
     // sliding window for noises
     double noises[num_sources][6];
-
-
     double past_locations_x[num_sources][6];
     double past_locations_y[num_sources][6];
 
@@ -300,34 +274,30 @@ int main ( int argc, char *argv[] ){
         past_locations_x[i][sw_index] = locations_x[i];
         past_locations_y[i][sw_index] = locations_y[i];
         for(int j = 0; j < num_sources; j++){
-          double dist_x = locations_x[i] - locations_x[j];
-          double dist_y = locations_y[i] - locations_y[j];
-          double dist = sqrt(dist_x*dist_x + dist_y*dist_y);
+          
+          double dist = get_distance(locations_x[i], locations_x[j], locations_y[i], locations_y[j]);
 
-          if(j < P){
-            if(dist < DP){ 
+          if(j < P){ // if the noise source is a person
+            if(dist < DP){ // if it can be heard by the sensor
               noises[i][sw_index] += NP;
             }
-          } else{
-            if(dist < DV){
+          } else{ // if the noise source is a vehicle
+            if(dist < DV){ // if it can be heard by the sensor
               noises[i][sw_index] += NV;
             }
           }
-
-          
-
         }
       }
       
       int old_index = sw_index;
       sw_index = (sw_index+1)%6;
 
-      if(num_measurements < 6){
+      if(num_measurements < 6){ // for the first 6 measurements, send nothing
         num_measurements++;
         continue;
       }
       
-      // TODO don't send averages until we reach 6 meaurements
+      
       for(int i = 0; i < num_sources; i++){
         double sum = 0;
         double sum_loc_x = 0;

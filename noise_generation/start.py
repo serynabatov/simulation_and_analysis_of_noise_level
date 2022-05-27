@@ -1,6 +1,9 @@
 import argparse
 import json
+import os
+
 import file_write
+import file_write_c
 
 description = "Here you should specify the path to the file that contain the parameters for generating N files"
 path = "./input.json"
@@ -17,6 +20,8 @@ if __name__ == "__main__":
 
     if args.path:
         path = args.path
+
+#    os.remove("region_data.c")
 
     with open(path) as f:
         json_content = json.load(f)
@@ -57,4 +62,7 @@ if __name__ == "__main__":
         print(file_write.main_file)
         file_write.populate_file()
 
+        file_write_c.write_to_c(i, file_write.number_of_lines, file_write.main_file)
         i += 1
+
+

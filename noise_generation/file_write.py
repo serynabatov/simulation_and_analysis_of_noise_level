@@ -38,7 +38,6 @@ def write_to_file(x, y, noise):
         for line in zip(x, y, noise):
             value = random.random()
             if value <= probability_corrupted_value:
-                print("CORRUPTED")
                 sec = np.random.uniform()
                 operation = np.random.uniform()
                 if sec <= 0.3:

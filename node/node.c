@@ -7,16 +7,12 @@
 #include "sys/node-id.h"
 
 #include "sys/log.h"
+#include "region_data.h"
 
-#include "cfs/cfs.h"
-//#include "cfs/cfs-coffee.h"
 #include <string.h>
-#include <stdio.h>
 
 #define LOG_MODULE "Node"
 #define LOG_LEVEL LOG_LEVEL_INFO
-
-#define MAXCHAR 20
 
 /*---------------------------------------------------------------------------*/
 /*
@@ -27,14 +23,6 @@ static const char *broker_ip = BROKER_IP_ADDR;
 #define DEFAULT_ORG_ID "Node"
 
 char node_id_string[5];
-
-typedef struct file_row {
-  char lat[MAXCHAR];
-  char lot[MAXCHAR];
-  char noise[MAXCHAR];
-} file_row_t;
-
-static file_row_t file_entry;
 
 int fp;
 
@@ -335,52 +323,15 @@ subscribe(void)
     LOG_INFO("Tried to subscribe but command queue was full!\n");
   }
 }
-/*---------------------------------------------------------------------------
-
-static void read_val(char *val) {	
-	char buf = -1;
-	int pos = 0;
-	int r = 0;
-	
-	while ((r = cfs_read(afd, buf2, sizeof(buf2))) > 0) {
-  	if (buf == '\n' || buf == ',') {
-  		break;	
-  	} else {
-  		val[pos] = buf;
-  		++pos;
-  	}
-  }
-}
-*/
 
 static void update_noise(void) {
   memset(&file_entry, 0, sizeof(file_row_t));
   
-	//read_val(file_entry.lat);
-	//read_val(file_entry.lot);
-	//read_val(file_entry.noise);
+  file_rows file[] = files[node_id];
   
-  char buf = -1;
+  file_entry = file[file_pos];
   
-  if (cfs_read(fp, &buf, sizeof(buf)) <= 0) {
-  	LOG_ERR("Error reading file!!!");
-    return;
-  }
-  memcpy(file_entry.lat, &buf, 1);
-  
-  if (cfs_read(fp, &buf, sizeof(buf)) <= 0) {
-  	LOG_ERR("Error reading file!!!");
-    return;
-  }
- 	memcpy(file_entry.lot, &buf, 1);
- 	
-  if (cfs_read(fp, &buf, sizeof(buf)) <= 0) {
-  	LOG_ERR("Error reading file!!!");
-    return;
-  }
- 	memcpy(file_entry.noise, &buf, 1);
-  	
- 	if (*(file_entry.lat) == -1 || *(file_entry.lot) == -1 || *(file_entry.noise) == -1) {
+ 	if (file_pos > 999) {
   	LOG_ERR("Valid values finished, passing  [0, 0, 0]!\n");
   	memcpy(file_entry.lat, "0", 2);
   	memcpy(file_entry.lot, "0", 2);
@@ -574,14 +525,6 @@ PROCESS_THREAD(node_process, ev, data)
   PROCESS_BEGIN();
 	
 	sprintf(node_id_string, "%d", node_id);
-	
-	char *FILENAME = "sample_2.txt";
-	fp = cfs_open(FILENAME, CFS_READ);
-	
-	//fp = fopen(strcat(strcat("sample_", node_id_string),".txt") ,"r");
-	if(fp < 0) {
-    LOG_ERR("Failed to open %s\n", FILENAME);
-  }
   
   LOG_INFO("Node started\n");
 

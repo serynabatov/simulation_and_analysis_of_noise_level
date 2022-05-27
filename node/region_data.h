@@ -11,14 +11,10 @@ typedef struct file_row {
     char noise[MAXCHAR];
 } file_row_t;
 
-file_row_t file_entry;
+file_row_t row;
 unsigned int file_pos = 0;
 
-typedef file_row_t file_rows[NUMBER_OF_ROWS];
-
-typedef file_rows array_file_row_t[NUMBER_OF_FILE];
-
-static file_rows file_entry_1[] = {
+static file_row_t file_entry_1[NUMBER_OF_ROWS] = {
 { "5.83613506988462", "7.517027380149415", "17.8638534936465" }
 , { "1.00316872133421", "6.081590272977937", "0.3844105125918" }
 , { "4.55349057609303", "5.608649972060196", "5.9341717073556" }
@@ -1021,7 +1017,7 @@ static file_rows file_entry_1[] = {
 , { "5.38321747847185", "4.551538262979836", "16.5211620842373" }
 };
  
-static file_rows file_entry_2[] = {
+static file_row_t file_entry_2[NUMBER_OF_ROWS] = {
 { "3.78529331696138", ".277665780793079", "13.7154401283941" }
 , { "1.67102823311523", "0.751108076686242", "1.0807357434983" }
 , { "7.13687639777888", "2.12270486018618", "5.3026219525465" }
@@ -2024,7 +2020,7 @@ static file_rows file_entry_2[] = {
 , { "3.970705200359056", "1.974178328888804", ".39089087950399" }
 };
  
-static file_rows file_entry_3[] = {
+static file_row_t file_entry_3[NUMBER_OF_ROWS] = {
 { "7.32294748611227", ".3114433468552074", "1.82616306764930" }
 , { "7.1507055057381", ".774937437312402", "9.7514435160950" }
 , { "4.55948519972409", ".927342254744131", "9.7123063704690" }
@@ -3027,6 +3023,6 @@ static file_rows file_entry_3[] = {
 , { "5.19439131879348", ".743263823114456", "0.49524292148977" }
 };
 
-static array_file_row_t files[] = { file_entry_1, file_entry_2, file_entry_3 };
+static file_row_t* files[NUMBER_OF_FILE] = { file_entry_1, file_entry_2, file_entry_3 };
 
 #endif

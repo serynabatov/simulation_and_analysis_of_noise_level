@@ -325,18 +325,19 @@ subscribe(void)
 }
 
 static void update_noise(void) {
-  memset(&file_entry, 0, sizeof(file_row_t));
+  memset(&row, 0, sizeof(file_row_t));
   
-  file_rows file[] = files[node_id];
+  file_row_t *file = files[node_id-2];
   
-  file_entry = file[file_pos];
+  row = file[file_pos];
   
  	if (file_pos > 999) {
   	LOG_ERR("Valid values finished, passing  [0, 0, 0]!\n");
-  	memcpy(file_entry.lat, "0", 2);
-  	memcpy(file_entry.lot, "0", 2);
-  	memcpy(file_entry.noise, "0", 2);
+  	memcpy(row.lat, "0", 2);
+  	memcpy(row.lot, "0", 2);
+  	memcpy(row.noise, "0", 2);
   }
+  ++file_pos;
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -352,7 +353,7 @@ publish(void)
 
 	update_noise();
   	
-	LOG_INFO("Read Lat: %s\nLot: %s\nNoise: %s\n", file_entry.lat, file_entry.lot, file_entry.noise);
+	LOG_INFO("Read Lat: %s\nLot: %s\nNoise: %s\n", row.lat, row.lot, row.noise);
 
   len = snprintf(buf_ptr, remaining,
                  "{"
@@ -363,7 +364,7 @@ publish(void)
                  "\"Latitude\":%s,"
                  "\"Longitude\":%s,"
                  "\"Noise (db)\":%s",
-                 node_id_string, seq_nr_value, clock_seconds(), file_entry.lat, file_entry.lot, file_entry.noise); 
+                 node_id_string, seq_nr_value, clock_seconds(), row.lat, row.lot, row.noise); 
                              
   if(len < 0 || len >= remaining) {
     LOG_ERR("Buffer too short. Have %d, need %d + \\0\n", remaining, len);

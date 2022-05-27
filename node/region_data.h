@@ -2,8 +2,8 @@
 #define REGION_DATA_H
 
 #define MAXCHAR 20
-#define FILE_SIZE 1000
-#define FILE_NUMBER 3
+#define NUMBER_OF_ROWS 1000
+#define NUMBER_OF_FILE 3
 
 typedef struct file_row {
     char lat[MAXCHAR];
@@ -14,9 +14,9 @@ typedef struct file_row {
 file_row_t file_entry;
 unsigned int file_pos = 0;
 
-typedef file_row_t file_rows[FILE_SIZE];
+typedef file_row_t file_rows[NUMBER_OF_ROWS];
 
-typedef file_rows array_file_row_t[FILE_NUMBER];
+typedef file_rows array_file_row_t[NUMBER_OF_FILE];
 
 static file_rows file_entry_1[] = {
 { "5.83613506988462", "7.517027380149415", "17.8638534936465" }

@@ -23,7 +23,7 @@ double fRand(double fMin, double fMax)
     return fMin + f * (fMax - fMin);
 }
 
-char* get_timestamp(char* timestamp){
+void get_timestamp(char* timestamp){
     struct timespec curtime;
     clock_gettime(CLOCK_REALTIME, &curtime);
 

@@ -1,0 +1,505 @@
+[
+    {
+        "id": "f6f2187d.f17ca8",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "7b5ff34258a485e5",
+        "type": "tab",
+        "label": "Поток 1",
+        "disabled": true,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "c32a3975a63be54e",
+        "type": "tab",
+        "label": "Flow 2",
+        "disabled": true,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "4f61f2c4899fc9bf",
+        "type": "tab",
+        "label": "Flow 2",
+        "disabled": true,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "87c3a8aab83e4c87",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "mqtt.neslab.it",
+        "port": "3200",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "sessionExpiry": ""
+    },
+    {
+        "id": "58948f710a2423b1",
+        "type": "mqtt-broker",
+        "name": "NES MQTT",
+        "broker": "mqtt.neslab.it",
+        "port": "3200",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "sessionExpiry": ""
+    },
+    {
+        "id": "3cc11d24.ff01a2",
+        "type": "comment",
+        "z": "f6f2187d.f17ca8",
+        "name": "WARNING: please check you have started this container with a volume that is mounted to /data\\n otherwise any flow changes are lost when you redeploy or upgrade the container\\n (e.g. upgrade to a more recent node-red docker image).\\n  If you are using named volumes you can ignore this warning.\\n Double click or see info side panel to learn how to start Node-RED in Docker to save your work",
+        "info": "\nTo start docker with a bind mount volume (-v option), for example:\n\n```\ndocker run -it -p 1880:1880 -v /home/user/node_red_data:/data --name mynodered nodered/node-red\n```\n\nwhere `/home/user/node_red_data` is a directory on your host machine where you want to store your flows.\n\nIf you do not do this then you can experiment and redploy flows, but if you restart or upgrade the container the flows will be disconnected and lost. \n\nThey will still exist in a hidden data volume, which can be recovered using standard docker techniques, but that is much more complex than just starting with a named volume as described above.",
+        "x": 350,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "b03ddeac7ed44562",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "Average function",
+        "func": "const threshold = 9;\nvar w = context.window;\nif (w.length >= 3) {\n    w.shift();\n}\nw.push(parseFloat(msg.payload))\nmsg.window_dbg = w.toString()\n\navg = w.reduce((a, b) => a + b, 0) / w.length\nif (avg > threshold) {\n    msg.payload = avg;\n    return [msg, null];\n} else {\n    var myMsgs = [];\n    w.forEach(t => {\n        myMsgs.push({payload: t});\n    });\n    return [null, myMsgs];\n}\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 810,
+        "y": 440,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "bb170c7b774fbe6e",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "DataCleaning Noise",
+        "func": "const defaultMaxWindowSize = 20;\nconst confidence = 10;\n\nvar w = context.window;\n\nif (w.length >= defaultMaxWindowSize) {\n    w.shift();\n}\n\nw.push(parseFloat(msg.payload))\nmsg.window_dbg = w.toString()\n\navg = w.reduce((a, b) => a + b, 0) / w.length;\nvar myMsgs = [];\n\nw.forEach(t => {\n    if (t > avg + confidence || t < avg - confidence) {\n        myMsgs.push({payload: avg});\n    } else {\n        myMsgs.push({payload: t});\n    }\n})\n\nreturn myMsgs;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 560,
+        "y": 440,
+        "wires": [
+            [
+                "b03ddeac7ed44562"
+            ]
+        ]
+    },
+    {
+        "id": "7a08fa444c1418a9",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "DataCleaning coordinates",
+        "func": "var w = context.window;\nconst threshold = 0.001; // because we are checking the \n                        // coordinates itself\n\nif (w.length >= 20) {\n    w.shift();\n}\n\nw.push(parseFloat(msg.payload))\nmsg.window_dbg = w.toString()\n\navg = w.reduce((a, b) => a + b, 0) / w.length\n\nvar myMsgs = []\n\nw.forEach(t => {\n    if (t > avg + threshold || t < avg - threshold) {\n        myMsgs.push({payload: avg});\n    } else {\n        myMsgs.push({payload: t});\n    }\n})\n\nreturn myMsgs;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 290,
+        "y": 440,
+        "wires": [
+            [
+                "bb170c7b774fbe6e"
+            ]
+        ]
+    },
+    {
+        "id": "137a3e3a0de3e47b",
+        "type": "mqtt in",
+        "z": "7b5ff34258a485e5",
+        "name": "",
+        "topic": "weather/milan/tempc",
+        "qos": "0",
+        "datatype": "auto",
+        "broker": "87c3a8aab83e4c87",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 380,
+        "y": 138,
+        "wires": [
+            [
+                "411ef9ac8aaddcc4",
+                "ccb0954220d28abb"
+            ]
+        ]
+    },
+    {
+        "id": "411ef9ac8aaddcc4",
+        "type": "debug",
+        "z": "7b5ff34258a485e5",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 740,
+        "y": 138,
+        "wires": []
+    },
+    {
+        "id": "ccb0954220d28abb",
+        "type": "file",
+        "z": "7b5ff34258a485e5",
+        "name": "",
+        "filename": "mqtt.log",
+        "appendNewline": true,
+        "createDir": true,
+        "overwriteFile": "false",
+        "encoding": "none",
+        "x": 680,
+        "y": 198,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "50784b55a6596988",
+        "type": "file in",
+        "z": "7b5ff34258a485e5",
+        "name": "",
+        "filename": "mqtt.log",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 460,
+        "y": 318,
+        "wires": [
+            [
+                "ee9d5371408e743d",
+                "899dda5b1997acc2"
+            ]
+        ]
+    },
+    {
+        "id": "ee9d5371408e743d",
+        "type": "e-mail",
+        "z": "7b5ff34258a485e5",
+        "server": "smtp.gmail.com",
+        "port": "465",
+        "secure": true,
+        "tls": true,
+        "name": "sergey.nabatov@mail.polimi.it",
+        "dname": "Send Message to myself",
+        "x": 790,
+        "y": 318,
+        "wires": []
+    },
+    {
+        "id": "899dda5b1997acc2",
+        "type": "debug",
+        "z": "7b5ff34258a485e5",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 780,
+        "y": 378,
+        "wires": []
+    },
+    {
+        "id": "19aaef6f6058bedf",
+        "type": "watch",
+        "z": "7b5ff34258a485e5",
+        "name": "",
+        "files": "mqtt.log",
+        "recursive": "",
+        "x": 240,
+        "y": 338,
+        "wires": [
+            [
+                "50784b55a6596988"
+            ]
+        ]
+    },
+    {
+        "id": "ab2182f02bcacb85",
+        "type": "mqtt in",
+        "z": "c32a3975a63be54e",
+        "name": "",
+        "topic": "weather/milan/tempc",
+        "qos": "0",
+        "datatype": "auto",
+        "broker": "58948f710a2423b1",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 190,
+        "y": 180,
+        "wires": [
+            [
+                "f1481d91a369132a"
+            ]
+        ]
+    },
+    {
+        "id": "1e28c72cb9e1955f",
+        "type": "debug",
+        "z": "c32a3975a63be54e",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 890,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "f1481d91a369132a",
+        "type": "file",
+        "z": "c32a3975a63be54e",
+        "name": "",
+        "filename": "/data/temperature_log.txt",
+        "appendNewline": false,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 480,
+        "y": 180,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "a24dda5833b438eb",
+        "type": "watch",
+        "z": "c32a3975a63be54e",
+        "name": "",
+        "files": "/data/temperature_log.txt",
+        "recursive": "",
+        "x": 210,
+        "y": 280,
+        "wires": [
+            [
+                "439282a0bbc51751"
+            ]
+        ]
+    },
+    {
+        "id": "439282a0bbc51751",
+        "type": "file in",
+        "z": "c32a3975a63be54e",
+        "name": "",
+        "filename": "/data/temperature_log.txt",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 490,
+        "y": 280,
+        "wires": [
+            [
+                "b802d694d4150bda"
+            ]
+        ]
+    },
+    {
+        "id": "b802d694d4150bda",
+        "type": "function",
+        "z": "c32a3975a63be54e",
+        "name": "MA5",
+        "func": "var w = context.window;\nif (w.length >= 3) {\n    w.shift();\n}\nw.push(parseFloat(msg.payload))\nmsg.window_dbg = w.toString()\n\navg = w.reduce((a, b) => a + b, 0) / w.length\nmsg.payload = avg\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "// Code added here will be run once\n// whenever the node is started.\ncontext.window = []",
+        "finalize": "",
+        "libs": [],
+        "x": 710,
+        "y": 280,
+        "wires": [
+            [
+                "1e28c72cb9e1955f"
+            ]
+        ]
+    },
+    {
+        "id": "060e7f7842684076",
+        "type": "mqtt in",
+        "z": "4f61f2c4899fc9bf",
+        "name": "",
+        "topic": "weather/milan/tempc",
+        "qos": "0",
+        "datatype": "auto",
+        "broker": "58948f710a2423b1",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 190,
+        "y": 180,
+        "wires": [
+            [
+                "a2767591375587ad"
+            ]
+        ]
+    },
+    {
+        "id": "380c3a1bcaaa8e9a",
+        "type": "debug",
+        "z": "4f61f2c4899fc9bf",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 870,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "a2767591375587ad",
+        "type": "file",
+        "z": "4f61f2c4899fc9bf",
+        "name": "",
+        "filename": "/data/temperature_log.txt",
+        "appendNewline": false,
+        "createDir": false,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 480,
+        "y": 180,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "29659c8a4b5a9330",
+        "type": "watch",
+        "z": "4f61f2c4899fc9bf",
+        "name": "",
+        "files": "/data/temperature_log.txt",
+        "recursive": "",
+        "x": 210,
+        "y": 280,
+        "wires": [
+            [
+                "3c700d60b76eb992"
+            ]
+        ]
+    },
+    {
+        "id": "3c700d60b76eb992",
+        "type": "file in",
+        "z": "4f61f2c4899fc9bf",
+        "name": "",
+        "filename": "/data/temperature_log.txt",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 490,
+        "y": 280,
+        "wires": [
+            [
+                "a67d3ff69ef44aef"
+            ]
+        ]
+    },
+    {
+        "id": "a67d3ff69ef44aef",
+        "type": "function",
+        "z": "4f61f2c4899fc9bf",
+        "name": "MA5",
+        "func": "const threshold = 9;\nvar w = context.window;\nif (w.length >= 3) {\n    w.shift();\n}\nw.push(parseFloat(msg.payload))\nmsg.window_dbg = w.toString()\n\navg = w.reduce((a, b) => a + b, 0) / w.length\nif (avg > threshold) {\n    msg.payload = avg;\n    return [msg, null];\n} else {\n    var myMsgs = [];\n    w.forEach(t => {\n        myMsgs.push({payload: t});\n    });\n    return [null, myMsgs];\n}\n",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "// Code added here will be run once\n// whenever the node is started.\ncontext.window = []",
+        "finalize": "",
+        "libs": [],
+        "x": 710,
+        "y": 280,
+        "wires": [
+            [
+                "380c3a1bcaaa8e9a"
+            ],
+            [
+                "698caf857036ec02"
+            ]
+        ]
+    },
+    {
+        "id": "698caf857036ec02",
+        "type": "debug",
+        "z": "4f61f2c4899fc9bf",
+        "name": "file",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 870,
+        "y": 320,
+        "wires": []
+    }
+]

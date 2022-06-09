@@ -1,0 +1,25 @@
+{
+  "files": [
+    {
+      "length": 1000,
+      "latitude": [41.0082, 41.0083],
+      "longitude": [28.9784, 28.9785],
+      "probability": 0.05,
+      "distribution": "uniform"
+    },
+	{
+      "length": 1000,
+      "latitude": [41.8881, 41.8882],
+      "longitude": [12.4814, 12.4815],
+      "probability": 0.05,
+      "distribution": "uniform"
+    },
+    {
+	  "length": 1000,
+      "latitude": [48.8580, 48.8581],
+      "longitude": [2.2946, 2.2947],
+      "distribution": "gauss",
+      "mean": 60
+    }
+  ]
+}

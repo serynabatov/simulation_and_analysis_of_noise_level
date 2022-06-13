@@ -22,7 +22,7 @@ typedef struct file_row {
             counter += 1
             if counter > 1:
                 file_row_t += ", "
-            file_row_t += "{{ {}, {}, {} }}\n".format(row[0], row[1], row[2])
+            file_row_t += "{{ \"{}\", \"{}\", \"{}\" }}\n".format(row[0], row[1], row[2])
 
         file_row_t += "};\n"
 

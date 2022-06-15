@@ -361,8 +361,8 @@ publish(void)
                  "\"Seq #\":%d,"
                  "\"Latitude\":%s,"
                  "\"Longitude\":%s,"
-                 "\"Noise (db)\":%s"
-                 "}",
+                 "\"Noise\":%s"
+                 ,
                  node_id_string, seq_nr_value, row.lat, row.lot, row.noise); 
                              
   if(len < 0 || len >= remaining) {
@@ -388,7 +388,7 @@ publish(void)
   remaining -= len;
   buf_ptr += len;
 
-  len = snprintf(buf_ptr, remaining, "}}");
+  len = snprintf(buf_ptr, remaining, "}");
 
   if(len < 0 || len >= remaining) {
     LOG_ERR("Buffer too short. Have %d, need %d + \\0\n", remaining, len);

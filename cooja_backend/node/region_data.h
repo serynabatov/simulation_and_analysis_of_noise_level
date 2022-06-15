@@ -1,10 +1,20 @@
+#ifndef REGION_DATA_H
+#define REGION_DATA_H
+
 #define MAXCHAR 20
+
+#define NUMBER_OF_ROWS 1000
+#define NUMBER_OF_FILE 3
 
 typedef struct file_row {
     char lat[MAXCHAR];
     char lot[MAXCHAR];
     char noise[MAXCHAR];
 } file_row_t;
+
+file_row_t row;
+unsigned int file_pos = 0;
+
 
 static file_row_t file_entry_1[1000] = {
 { "31.30752594467924", "27.52867680882544", "22.255451962225067" }
@@ -3014,3 +3024,8 @@ static file_row_t file_entry_3[1000] = {
 , { "17.535230090108847", "4.261443431744094", "61.57806194783529" }
 , { "22.62530189209136", "4.032201748239396", "60.046729409113524" }
 };
+
+static file_row_t* files[NUMBER_OF_FILE] = { file_entry_1, file_entry_2, file_entry_3 };
+
+
+#endif

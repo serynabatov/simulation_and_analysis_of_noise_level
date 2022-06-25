@@ -1,0 +1,495 @@
+[
+    {
+        "id": "d7ea9d85b902106b",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "7ea7b76549d61535",
+        "type": "watch-directory",
+        "z": "d7ea9d85b902106b",
+        "folder": "/home/egesaygili/Desktop/simulation_and_analysis_of_noise_level/spark_backend/spark/log/Q1-Hourly",
+        "recursive": 0,
+        "typeEvent": "create",
+        "ignoreInitial": true,
+        "ignoredFiles": "_SUCCESS | *.csv.crc",
+        "ignoredFilesType": "re",
+        "name": "Q1-Hourly",
+        "x": 280,
+        "y": 400,
+        "wires": [
+            [
+                "f67939278653d398"
+            ]
+        ]
+    },
+    {
+        "id": "7d36c1d1f7f98a87",
+        "type": "debug",
+        "z": "d7ea9d85b902106b",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1050,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "2b17aadf6df52ab1",
+        "type": "csv",
+        "z": "d7ea9d85b902106b",
+        "name": "Q1-Hourly",
+        "sep": ",",
+        "hdrin": true,
+        "hdrout": "none",
+        "multi": "one",
+        "ret": "\\n",
+        "temp": "id,name,noiseLevel,timeOfTheDay,latitude_poi,longitude_poi,hour(timestamp),date_format(timestamp, yyyy-MM-dd),avg(max(db))",
+        "skip": "0",
+        "strings": true,
+        "include_empty_strings": "",
+        "include_null_values": "",
+        "x": 650,
+        "y": 400,
+        "wires": [
+            [
+                "15fbe880eb1c02ab"
+            ]
+        ]
+    },
+    {
+        "id": "f67939278653d398",
+        "type": "file in",
+        "z": "d7ea9d85b902106b",
+        "name": "",
+        "filename": "",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 460,
+        "y": 400,
+        "wires": [
+            [
+                "2b17aadf6df52ab1"
+            ]
+        ]
+    },
+    {
+        "id": "15fbe880eb1c02ab",
+        "type": "function",
+        "z": "d7ea9d85b902106b",
+        "name": "",
+        "func": "\nreturn msg.payload;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 860,
+        "y": 400,
+        "wires": [
+            [
+                "7d36c1d1f7f98a87"
+            ]
+        ]
+    },
+    {
+        "id": "c1790a97525b0272",
+        "type": "watch-directory",
+        "z": "d7ea9d85b902106b",
+        "folder": "/home/egesaygili/Desktop/simulation_and_analysis_of_noise_level/spark_backend/spark/log/Q1-Daily",
+        "recursive": 0,
+        "typeEvent": "create",
+        "ignoreInitial": true,
+        "ignoredFiles": "_SUCCESS | *.csv.crc",
+        "ignoredFilesType": "re",
+        "name": "Q1-Daily",
+        "x": 280,
+        "y": 480,
+        "wires": [
+            [
+                "8e7e4acf0b681ebd"
+            ]
+        ]
+    },
+    {
+        "id": "dba60469623101f6",
+        "type": "debug",
+        "z": "d7ea9d85b902106b",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1050,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "1eb4c3df33585bb0",
+        "type": "csv",
+        "z": "d7ea9d85b902106b",
+        "name": "Q1-Daily",
+        "sep": ",",
+        "hdrin": true,
+        "hdrout": "none",
+        "multi": "one",
+        "ret": "\\n",
+        "temp": "id,name,noiseLevel,timeOfTheDay,latitude_poi,longitude_poi,date_format(timestamp, yyyy-MM-dd),avg(max(db))",
+        "skip": "0",
+        "strings": true,
+        "include_empty_strings": "",
+        "include_null_values": "",
+        "x": 640,
+        "y": 480,
+        "wires": [
+            [
+                "5910a7fb683bf0e6"
+            ]
+        ]
+    },
+    {
+        "id": "8e7e4acf0b681ebd",
+        "type": "file in",
+        "z": "d7ea9d85b902106b",
+        "name": "",
+        "filename": "",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 460,
+        "y": 480,
+        "wires": [
+            [
+                "1eb4c3df33585bb0"
+            ]
+        ]
+    },
+    {
+        "id": "5910a7fb683bf0e6",
+        "type": "function",
+        "z": "d7ea9d85b902106b",
+        "name": "",
+        "func": "\nreturn msg.payload;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 860,
+        "y": 480,
+        "wires": [
+            [
+                "dba60469623101f6"
+            ]
+        ]
+    },
+    {
+        "id": "f1892ed202b4d0de",
+        "type": "watch-directory",
+        "z": "d7ea9d85b902106b",
+        "folder": "/home/egesaygili/Desktop/simulation_and_analysis_of_noise_level/spark_backend/spark/log/Q1-Weekly",
+        "recursive": 0,
+        "typeEvent": "create",
+        "ignoreInitial": true,
+        "ignoredFiles": "_SUCCESS | *.csv.crc",
+        "ignoredFilesType": "re",
+        "name": "Q1-Weekly",
+        "x": 280,
+        "y": 560,
+        "wires": [
+            [
+                "4873d9afcc3df39f"
+            ]
+        ]
+    },
+    {
+        "id": "79bb3a7cbee1955f",
+        "type": "debug",
+        "z": "d7ea9d85b902106b",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1050,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "4468b29c6b853a37",
+        "type": "csv",
+        "z": "d7ea9d85b902106b",
+        "name": "Q1-Weekly",
+        "sep": ",",
+        "hdrin": true,
+        "hdrout": "none",
+        "multi": "one",
+        "ret": "\\n",
+        "temp": "id,name,noiseLevel,timeOfTheDay,latitude_poi,longitude_poi,year(timestamp),weekofyear(timestamp),avg(max(db))",
+        "skip": "0",
+        "strings": true,
+        "include_empty_strings": "",
+        "include_null_values": "",
+        "x": 650,
+        "y": 560,
+        "wires": [
+            [
+                "2d98b5190acb2cbf"
+            ]
+        ]
+    },
+    {
+        "id": "4873d9afcc3df39f",
+        "type": "file in",
+        "z": "d7ea9d85b902106b",
+        "name": "",
+        "filename": "",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 460,
+        "y": 560,
+        "wires": [
+            [
+                "4468b29c6b853a37"
+            ]
+        ]
+    },
+    {
+        "id": "2d98b5190acb2cbf",
+        "type": "function",
+        "z": "d7ea9d85b902106b",
+        "name": "",
+        "func": "\nreturn msg.payload;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 860,
+        "y": 560,
+        "wires": [
+            [
+                "79bb3a7cbee1955f"
+            ]
+        ]
+    },
+    {
+        "id": "d10b1ea24cfbd946",
+        "type": "watch-directory",
+        "z": "d7ea9d85b902106b",
+        "folder": "/home/egesaygili/Desktop/simulation_and_analysis_of_noise_level/spark_backend/spark/log/Q2-TopTen",
+        "recursive": 0,
+        "typeEvent": "create",
+        "ignoreInitial": true,
+        "ignoredFiles": "_SUCCESS | *.csv.crc",
+        "ignoredFilesType": "re",
+        "name": "Q2-TopTen",
+        "x": 280,
+        "y": 660,
+        "wires": [
+            [
+                "3a1fdb544be49f90"
+            ]
+        ]
+    },
+    {
+        "id": "d20302ae7ce21cbe",
+        "type": "debug",
+        "z": "d7ea9d85b902106b",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1050,
+        "y": 660,
+        "wires": []
+    },
+    {
+        "id": "9cc11fe0a15e1f1b",
+        "type": "csv",
+        "z": "d7ea9d85b902106b",
+        "name": "Q2-TopTen",
+        "sep": ",",
+        "hdrin": true,
+        "hdrout": "none",
+        "multi": "one",
+        "ret": "\\n",
+        "temp": "id,name,noiseLevel,timeOfTheDay,latitude_poi,longitude_poi,avg(max(db))",
+        "skip": "0",
+        "strings": true,
+        "include_empty_strings": "",
+        "include_null_values": "",
+        "x": 650,
+        "y": 660,
+        "wires": [
+            [
+                "ecedf8e4fc555bef"
+            ]
+        ]
+    },
+    {
+        "id": "3a1fdb544be49f90",
+        "type": "file in",
+        "z": "d7ea9d85b902106b",
+        "name": "",
+        "filename": "",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 460,
+        "y": 660,
+        "wires": [
+            [
+                "9cc11fe0a15e1f1b"
+            ]
+        ]
+    },
+    {
+        "id": "ecedf8e4fc555bef",
+        "type": "function",
+        "z": "d7ea9d85b902106b",
+        "name": "",
+        "func": "\nreturn msg.payload;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 860,
+        "y": 660,
+        "wires": [
+            [
+                "d20302ae7ce21cbe"
+            ]
+        ]
+    },
+    {
+        "id": "89acfa2e1af0b201",
+        "type": "watch-directory",
+        "z": "d7ea9d85b902106b",
+        "folder": "/home/egesaygili/Desktop/simulation_and_analysis_of_noise_level/spark_backend/spark/log/Q3-Exceeded",
+        "recursive": 0,
+        "typeEvent": "create",
+        "ignoreInitial": true,
+        "ignoredFiles": "_SUCCESS | *.csv.crc",
+        "ignoredFilesType": "re",
+        "name": "Q3-Exceeded",
+        "x": 290,
+        "y": 720,
+        "wires": [
+            [
+                "7d394c7833d6334d"
+            ]
+        ]
+    },
+    {
+        "id": "61e16e1a023f4e9a",
+        "type": "debug",
+        "z": "d7ea9d85b902106b",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1050,
+        "y": 720,
+        "wires": []
+    },
+    {
+        "id": "8ea44dd3a8ab2a37",
+        "type": "csv",
+        "z": "d7ea9d85b902106b",
+        "name": "Q3-Exceeded",
+        "sep": ",",
+        "hdrin": true,
+        "hdrout": "none",
+        "multi": "one",
+        "ret": "\\n",
+        "temp": "id,name,db,eventDate",
+        "skip": "0",
+        "strings": true,
+        "include_empty_strings": "",
+        "include_null_values": "",
+        "x": 660,
+        "y": 720,
+        "wires": [
+            [
+                "bf4f8da35b9d035f"
+            ]
+        ]
+    },
+    {
+        "id": "7d394c7833d6334d",
+        "type": "file in",
+        "z": "d7ea9d85b902106b",
+        "name": "",
+        "filename": "",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 460,
+        "y": 720,
+        "wires": [
+            [
+                "8ea44dd3a8ab2a37"
+            ]
+        ]
+    },
+    {
+        "id": "bf4f8da35b9d035f",
+        "type": "function",
+        "z": "d7ea9d85b902106b",
+        "name": "",
+        "func": "\nreturn msg.payload;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 860,
+        "y": 720,
+        "wires": [
+            [
+                "61e16e1a023f4e9a"
+            ]
+        ]
+    }
+]

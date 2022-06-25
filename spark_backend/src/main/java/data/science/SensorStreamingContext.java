@@ -26,6 +26,8 @@ public class SensorStreamingContext {
 
         directory.mkdirs();
 
+        String kafkaAddress = "192.168.43.55:9092";
+
         final SparkSession spark = SparkSession
                 .builder()
                 .master(master)
@@ -35,7 +37,7 @@ public class SensorStreamingContext {
         Dataset<Row> rawDf = spark
                 .readStream()
                 .format("kafka")
-                .option("kafka.bootstrap.servers", "localhost:9092")
+                .option("kafka.bootstrap.servers", kafkaAddress)
                 .option("subscribe", "data-prepared")
                 .load();
 
@@ -85,10 +87,10 @@ public class SensorStreamingContext {
         // Hourly
         val hourlyQuery = effectiveNoiseView.
                 writeStream()
-                //.format("console")
-                .format("kafka")
-                .option("kafka.bootstrap.servers", "localhost:9092")
-                .option("topic", "q1-hourly")
+                .outputMode("update")
+                /*.format("kafka")
+                .option("kafka.bootstrap.servers", kafkaAddress)
+                .option("topic", "q1-hourly")*/
                 .queryName("hourly")
                 .foreachBatch((VoidFunction2<Dataset<Row>, Long>) (rowDataset, aLong) -> rowDataset
                         .withWatermark("timestamp", "1 seconds")   // TODO: in production change into 1 minute!/
@@ -104,15 +106,18 @@ public class SensorStreamingContext {
                         .write()
                         .option("header", true)
                         .format("csv")
-                        .save(path + "/" + "Q1-Horly-" + Instant.now().toString()))
+                        .option("path", path + "/" + "Q1-Hourly")
+                        .mode("append")
+                        .save())
                 .start();
 
         // Daily
         val dailQuery = effectiveNoiseView
                 .writeStream()
-                .format("kafka")
-                .option("kafka.bootstrap.servers", "localhost:9092")
-                .option("topic", "q1-daily")
+                /*.format("kafka")
+                .option("kafka.bootstrap.servers", kafkaAddress)
+                .option("topic", "q1-daily")*/
+                .outputMode("append")
                 .queryName("daily")
                 .foreachBatch((VoidFunction2<Dataset<Row>, Long>) (rowDataset, aLong) -> rowDataset
                         .withWatermark("timestamp", "1 seconds")    // TODO: in production change into 1 minute!
@@ -127,15 +132,18 @@ public class SensorStreamingContext {
                         .write()
                         .option("header", true)
                         .format("csv")
-                        .save(path + "/" + "Q1-Daily-" + Instant.now().toString()))
+                        .option("path", path + "/" + "Q1-Daily")
+                        .mode("append")
+                        .save())
                 .start();
 
         // Weekly
         val weeklyQuery = effectiveNoiseView
                 .writeStream()
-                .format("kafka")
-                .option("kafka.bootstrap.servers", "localhost:9092")
-                .option("topic", "q1-weekly")
+                /*.format("kafka")
+                .option("kafka.bootstrap.servers", kafkaAddress)
+                .option("topic", "q1-weekly")*/
+                .outputMode("append")
                 .queryName("weeklyQuery")
                 .foreachBatch((VoidFunction2<Dataset<Row>, Long>) (rowDataset, aLong) -> rowDataset
                         .withWatermark("timestamp", "1 seconds") //TODO: in production change into 1 minute!
@@ -151,16 +159,19 @@ public class SensorStreamingContext {
                         .write()
                         .option("header", true)
                         .format("csv")
-                        .save(path + "/" + "Q1-Weekly-" + Instant.now().toString()))
+                        .option("path", path + "/" + "Q1-Weekly")
+                        .mode("append")
+                        .save())
                 .start();
 
         // Q2
         val topTenQuery = effectiveNoiseView
                 .writeStream()
                 .queryName("TopTen")
-                .format("kafka")
-                .option("kafka.bootstrap.servers", "localhost:9092")
-                .option("topic", "q2-TopTen")
+                /*.format("kafka")
+                .option("kafka.bootstrap.servers", kafkaAddress)
+                .option("topic", "q2-TopTen")*/
+                .outputMode("append")
                 .foreachBatch((VoidFunction2<Dataset<Row>, Long>) (rowDataset, aLong) -> rowDataset
                         .withWatermark("timestamp", "1 seconds")     // TODO: in production put 10 minutes!
                         .filter(col("timestamp").gt(current_timestamp().minus(expr("INTERVAL 1 HOUR"))))
@@ -174,7 +185,9 @@ public class SensorStreamingContext {
                         .write()
                         .option("header", true)
                         .format("csv")
-                        .save(path + "/" + "Q2-TopTen-" + Instant.now().toString()))
+                        .option("path", path + "/" + "Q2-TopTen")
+                        .mode("append")
+                        .save())
                 .start();
 
         // Q3
@@ -184,9 +197,10 @@ public class SensorStreamingContext {
 
         val longestStreakQuery = exceededNoise
                 .writeStream()
-                .format("kafka")
-                .option("kafka.bootstrap.servers", "localhost:9092")
-                .option("topic", "exceededNoise")
+                /*.format("kafka")
+                .option("kafka.bootstrap.servers", kafkaAddress)
+                .option("topic", "exceededNoise")*/
+                .outputMode("append")
                 .queryName("LongestStreak")
                 .foreachBatch((VoidFunction2<Dataset<Row>, Long>) (rowDataset, aLong) -> rowDataset
                         .withWatermark("timestamp", "1 seconds")           // TODO: change it in production for 1 MONUTES
@@ -213,7 +227,9 @@ public class SensorStreamingContext {
                         .write()
                         .option("header", true)
                         .format("csv")
-                        .save(path + "/" + "Q3-Exceeded-" + Instant.now().toString()))
+                        .option("path", path + "/" + "Q3-Exceeded")
+                        .mode("append")
+                        .save())
                 .start();
 
         spark.streams().awaitAnyTermination();

@@ -10,6 +10,8 @@ import org.apache.spark.sql.streaming.StreamingQueryException;
 import org.apache.spark.sql.types.*;
 
 
+import java.io.File;
+import java.time.Instant;
 import java.util.concurrent.TimeoutException;
 
 import static org.apache.spark.sql.functions.*;
@@ -18,6 +20,11 @@ public class SensorStreamingContext {
 
     public static void main(String[] args) throws TimeoutException, StreamingQueryException {
         final String master = args.length > 0 ? args[0] : "local[4]";
+
+        String path = "./spark/log/";
+        File directory = new File(path);
+
+        directory.mkdirs();
 
         final SparkSession spark = SparkSession
                 .builder()
@@ -78,10 +85,13 @@ public class SensorStreamingContext {
         // Hourly
         val hourlyQuery = effectiveNoiseView.
                 writeStream()
-                .format("console")
+                //.format("console")
+                .format("kafka")
+                .option("kafka.bootstrap.servers", "localhost:9092")
+                .option("topic", "q1-hourly")
                 .queryName("hourly")
                 .foreachBatch((VoidFunction2<Dataset<Row>, Long>) (rowDataset, aLong) -> rowDataset
-                        .withWatermark("timestamp", "1 seconds")   // TODO: in production change into 1 minute!
+                        .withWatermark("timestamp", "1 seconds")   // TODO: in production change into 1 minute!/
                         .groupBy(col("id"),
                                 col("name"),
                                 col("noiseLevel"),
@@ -92,13 +102,17 @@ public class SensorStreamingContext {
                                 date_format(col("timestamp"), "yyyy-MM-dd"))
                         .avg("max(db)")
                         .write()
-                        .format("console")
-                        .save())
+                        .option("header", true)
+                        .format("csv")
+                        .save(path + "/" + "Q1-Horly-" + Instant.now().toString()))
                 .start();
 
         // Daily
         val dailQuery = effectiveNoiseView
                 .writeStream()
+                .format("kafka")
+                .option("kafka.bootstrap.servers", "localhost:9092")
+                .option("topic", "q1-daily")
                 .queryName("daily")
                 .foreachBatch((VoidFunction2<Dataset<Row>, Long>) (rowDataset, aLong) -> rowDataset
                         .withWatermark("timestamp", "1 seconds")    // TODO: in production change into 1 minute!
@@ -111,13 +125,17 @@ public class SensorStreamingContext {
                                 date_format(col("timestamp"), "yyyy-MM-dd"))
                         .avg("max(db)")
                         .write()
-                        .format("console")
-                        .save())
+                        .option("header", true)
+                        .format("csv")
+                        .save(path + "/" + "Q1-Daily-" + Instant.now().toString()))
                 .start();
 
         // Weekly
         val weeklyQuery = effectiveNoiseView
                 .writeStream()
+                .format("kafka")
+                .option("kafka.bootstrap.servers", "localhost:9092")
+                .option("topic", "q1-weekly")
                 .queryName("weeklyQuery")
                 .foreachBatch((VoidFunction2<Dataset<Row>, Long>) (rowDataset, aLong) -> rowDataset
                         .withWatermark("timestamp", "1 seconds") //TODO: in production change into 1 minute!
@@ -131,14 +149,18 @@ public class SensorStreamingContext {
                                 weekofyear(col("timestamp")))
                         .avg("max(db)")
                         .write()
-                        .format("console")
-                        .save())
+                        .option("header", true)
+                        .format("csv")
+                        .save(path + "/" + "Q1-Weekly-" + Instant.now().toString()))
                 .start();
 
         // Q2
         val topTenQuery = effectiveNoiseView
                 .writeStream()
                 .queryName("TopTen")
+                .format("kafka")
+                .option("kafka.bootstrap.servers", "localhost:9092")
+                .option("topic", "q2-TopTen")
                 .foreachBatch((VoidFunction2<Dataset<Row>, Long>) (rowDataset, aLong) -> rowDataset
                         .withWatermark("timestamp", "1 seconds")     // TODO: in production put 10 minutes!
                         .filter(col("timestamp").gt(current_timestamp().minus(expr("INTERVAL 1 HOUR"))))
@@ -150,8 +172,9 @@ public class SensorStreamingContext {
                                 col("longitude_poi"))
                         .avg("max(db)")
                         .write()
-                        .format("console")
-                        .save())
+                        .option("header", true)
+                        .format("csv")
+                        .save(path + "/" + "Q2-TopTen-" + Instant.now().toString()))
                 .start();
 
         // Q3
@@ -161,6 +184,9 @@ public class SensorStreamingContext {
 
         val longestStreakQuery = exceededNoise
                 .writeStream()
+                .format("kafka")
+                .option("kafka.bootstrap.servers", "localhost:9092")
+                .option("topic", "exceededNoise")
                 .queryName("LongestStreak")
                 .foreachBatch((VoidFunction2<Dataset<Row>, Long>) (rowDataset, aLong) -> rowDataset
                         .withWatermark("timestamp", "1 seconds")           // TODO: change it in production for 1 MONUTES
@@ -185,8 +211,9 @@ public class SensorStreamingContext {
                         .orderBy(col("max(timestamp)"))
                         .limit(1)
                         .write()
-                        .format("console")
-                        .save())
+                        .option("header", true)
+                        .format("csv")
+                        .save(path + "/" + "Q3-Exceeded-" + Instant.now().toString()))
                 .start();
 
         spark.streams().awaitAnyTermination();

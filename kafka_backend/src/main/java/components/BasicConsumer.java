@@ -45,6 +45,7 @@ public class BasicConsumer {
                     DatabaseManager databaseManager = new DatabaseManager(record.value());
                     String sendValue = databaseManager.start();
                     EnrichedProducer enrichedProducer = new EnrichedProducer(serverAddr);
+                    System.out.println(sendValue);
                     enrichedProducer.publishMessage(record.key(), sendValue);
                 } catch (InterruptedException e) {
                     System.out.println("Interrupt Exception here!");

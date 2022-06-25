@@ -20,6 +20,9 @@ sudo ./bin/zookeeper-server-start.sh ./config/zookeeper.properties
 ```
 
 ## Run Kafka Server
+
+Uncomment in ./config/server.properties two lines with listeners (listeners & adjust.listeners) and put in adjust.listeners instead of PLAIN_TEXT the IP address that you need
+
 ```
 sudo ./bin/kafka-server-start.sh ./config/server.properties
 ```

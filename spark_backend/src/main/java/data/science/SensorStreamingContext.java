@@ -64,7 +64,8 @@ public class SensorStreamingContext {
                         col("exceeded"),
                         col("noiseLevel"),
                         col("timestamp"),
-                        col("timeOfTheDay"));
+                        col("timeOfTheDay"))
+                .dropDuplicates("latitude", "longitude", "db", "timestamp");
 
         /* Create view Effective Noise  */
         Dataset<Row> effectiveNoiseView = noiseEvent.select(to_timestamp(col("timestamp").divide(1000)).as("timestamp"), // TODO: in production change it as division by 60000

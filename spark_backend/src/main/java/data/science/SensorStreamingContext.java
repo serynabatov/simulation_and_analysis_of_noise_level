@@ -31,7 +31,7 @@ public class SensorStreamingContext {
         final SparkSession spark = SparkSession
                 .builder()
                 .master(master)
-                .appName("StructuredStreamingWordCount")
+                .appName("UpStreamDataScience")
                 .getOrCreate();
 
         Dataset<Row> rawDf = spark

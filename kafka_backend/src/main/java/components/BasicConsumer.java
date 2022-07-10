@@ -1,5 +1,7 @@
 package components;
 
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
@@ -12,12 +14,26 @@ public class BasicConsumer {
 
     private static final String defaultGroupId = "groupA";
     private static final String defaultTopic = "sensor-readings";
-    private static final String serverAddr = "localhost:9092";
+    private static String serverAddrConsumer;
+    private static String serverAddrProducer;
     private static final boolean autoCommit = true;
     private static final int autoCommitIntervalMs = 15000;
 
     // Default is "latest": try "earliest" instead
     private static final String offsetResetStrategy = "latest";
+
+    private static void setProperties() {
+        Properties props = new Properties();
+        try {
+            InputStream in = new FileInputStream("config.properties");
+            props.load(in);
+            in.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        serverAddrConsumer = props.getProperty("KafkaConsumerAddress");
+        serverAddrProducer = props.getProperty("KafkaProducerAddress");
+    }
 
     public static void main(String[] args) {
         // If there are arguments, use the first as group and the second as topic.
@@ -25,8 +41,10 @@ public class BasicConsumer {
         String groupId = args.length >= 1 ? args[0] : defaultGroupId;
         String topic = args.length >= 2 ? args[1] : defaultTopic;
 
+        setProperties();
+
         final Properties props = new Properties();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, serverAddr);
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, serverAddrConsumer);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, String.valueOf(autoCommit));
         props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, String.valueOf(autoCommitIntervalMs));
@@ -44,7 +62,7 @@ public class BasicConsumer {
                 try {
                     DatabaseManager databaseManager = new DatabaseManager(record.value());
                     String sendValue = databaseManager.start();
-                    EnrichedProducer enrichedProducer = new EnrichedProducer(serverAddr);
+                    EnrichedProducer enrichedProducer = new EnrichedProducer(serverAddrProducer);
                     System.out.println(sendValue);
                     enrichedProducer.publishMessage(record.key(), sendValue);
                 } catch (InterruptedException e) {

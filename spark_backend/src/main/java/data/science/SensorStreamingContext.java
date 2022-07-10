@@ -10,15 +10,16 @@ import org.apache.spark.sql.streaming.StreamingQueryException;
 import org.apache.spark.sql.types.*;
 
 
-import java.io.File;
+import java.io.*;
 import java.time.Instant;
+import java.util.Properties;
 import java.util.concurrent.TimeoutException;
 
 import static org.apache.spark.sql.functions.*;
 
 public class SensorStreamingContext {
 
-    public static void main(String[] args) throws TimeoutException, StreamingQueryException {
+    public static void main(String[] args) throws TimeoutException, StreamingQueryException, IOException {
         final String master = args.length > 0 ? args[0] : "local[4]";
 
         String path = "./spark/log/";
@@ -26,7 +27,12 @@ public class SensorStreamingContext {
 
         directory.mkdirs();
 
-        String kafkaAddress = "192.168.43.55:9092";
+        Properties props = new Properties();
+        InputStream in = new FileInputStream("config.properties");
+        props.load(in);
+        in.close();
+
+        String kafkaAddress = props.getProperty("KafkaAddress");
 
         final SparkSession spark = SparkSession
                 .builder()

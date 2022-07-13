@@ -330,7 +330,7 @@ int main ( int argc, char *argv[] ){
       MPI_Send(noises_to_send, num_sources*4, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
      
       // TODO can make sleep time more accurate
-      sleep_ms(2000);
+      sleep_ms(10000);
 
       // location
       for(int i = 0; i < directions_x.size(); i++){

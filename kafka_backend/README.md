@@ -53,8 +53,16 @@ Run the content of **./database.sql** inside the H2 web browser window.
 
 Then you can run the BasicConsumer.java and the system will start to work
 
-# TODO
+# Alternative way to run application
 
-- Automatize the population of database
-- Automatize the environment
-- Do system tests
+Change the parameters in the config.properties and then package it with maven
+
+```
+mvn package
+```
+
+Run the application
+
+```
+java -jar target/kafka_backend.jar
+```

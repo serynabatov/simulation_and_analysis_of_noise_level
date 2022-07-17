@@ -7,3 +7,17 @@ To install Spark
 # To run 
 
 You just need to launch the main Java file
+
+# Alternative way to run it
+
+Change config.properties for Kafka broker IP address, package it with Maven
+
+```
+mvn package
+```
+
+Run jar
+
+```
+java -jar target/spark_backend.jar
+```

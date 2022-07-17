@@ -85,7 +85,7 @@ public class SensorStreamingContext {
                                                                 col("lat").as("latitude_poi"),
                                                                 col("lon").as("longitude_poi"),
                                                                 col("name"))
-                                                .withWatermark("timestamp", "1 seconds") // TODO: in production we should change it to 1 minute!!!
+                                                .withWatermark("timestamp", "1 milliseconds") // TODO: in production we should change it to 1 minute!!!
                                                 .groupBy("timestamp", "noiseLevel", "timeOfTheDay",
                                                         "id", "latitude_poi", "longitude_poi"   , "name", "exceeded").
                                                 max("db");
@@ -95,12 +95,9 @@ public class SensorStreamingContext {
         val hourlyQuery = effectiveNoiseView.
                 writeStream()
                 .outputMode("update")
-                /*.format("kafka")
-                .option("kafka.bootstrap.servers", kafkaAddress)
-                .option("topic", "q1-hourly")*/
                 .queryName("hourly")
                 .foreachBatch((VoidFunction2<Dataset<Row>, Long>) (rowDataset, aLong) -> rowDataset
-                        .withWatermark("timestamp", "1 seconds")   // TODO: in production change into 1 minute!/
+                        .withWatermark("timestamp", "1 milliseconds")   // TODO: in production change into 1 minute!/
                         .groupBy(col("id"),
                                 col("name"),
                                 col("noiseLevel"),
@@ -121,13 +118,10 @@ public class SensorStreamingContext {
         // Daily
         val dailQuery = effectiveNoiseView
                 .writeStream()
-                /*.format("kafka")
-                .option("kafka.bootstrap.servers", kafkaAddress)
-                .option("topic", "q1-daily")*/
                 .outputMode("append")
                 .queryName("daily")
                 .foreachBatch((VoidFunction2<Dataset<Row>, Long>) (rowDataset, aLong) -> rowDataset
-                        .withWatermark("timestamp", "1 seconds")    // TODO: in production change into 1 minute!
+                        .withWatermark("timestamp", "1 milliseconds")    // TODO: in production change into 1 minute!
                         .groupBy(col("id"),
                                 col("name"),
                                 col("noiseLevel"),
@@ -147,13 +141,10 @@ public class SensorStreamingContext {
         // Weekly
         val weeklyQuery = effectiveNoiseView
                 .writeStream()
-                /*.format("kafka")
-                .option("kafka.bootstrap.servers", kafkaAddress)
-                .option("topic", "q1-weekly")*/
                 .outputMode("append")
                 .queryName("weeklyQuery")
                 .foreachBatch((VoidFunction2<Dataset<Row>, Long>) (rowDataset, aLong) -> rowDataset
-                        .withWatermark("timestamp", "1 seconds") //TODO: in production change into 1 minute!
+                        .withWatermark("timestamp", "1 milliseconds") //TODO: in production change into 1 minute!
                         .groupBy(col("id"),
                                 col("name"),
                                 col("noiseLevel"),
@@ -175,12 +166,9 @@ public class SensorStreamingContext {
         val topTenQuery = effectiveNoiseView
                 .writeStream()
                 .queryName("TopTen")
-                /*.format("kafka")
-                .option("kafka.bootstrap.servers", kafkaAddress)
-                .option("topic", "q2-TopTen")*/
                 .outputMode("append")
                 .foreachBatch((VoidFunction2<Dataset<Row>, Long>) (rowDataset, aLong) -> rowDataset
-                        .withWatermark("timestamp", "1 seconds")     // TODO: in production put 10 minutes!
+                        .withWatermark("timestamp", "1 milliseconds")     // TODO: in production put 10 minutes!
                         .filter(col("timestamp").gt(current_timestamp().minus(expr("INTERVAL 1 HOUR"))))
                         .groupBy(col("id"),
                                 col("name"),
@@ -210,7 +198,7 @@ public class SensorStreamingContext {
                 .outputMode("append")
                 .queryName("LongestStreak")
                 .foreachBatch((VoidFunction2<Dataset<Row>, Long>) (rowDataset, aLong) -> rowDataset
-                        .withWatermark("timestamp", "1 seconds")           // TODO: change it in production for 1 MONUTES
+                        .withWatermark("timestamp", "1 milliseconds")           // TODO: change it in production for 1 MONUTES
                         .select(col("timestamp").cast(DataTypes.LongType).as("timestamp"),
                                 col("max(db)"),
                                 col("noiseLevel"),
